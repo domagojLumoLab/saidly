@@ -10,7 +10,7 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().max(65535).default(3000),
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   DATABASE_URL: z.string().url(),
   FIREBASE_PROJECT_ID: z.string().min(1),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
@@ -19,8 +19,21 @@ const envSchema = z.object({
 
 export type Config = z.infer<typeof envSchema>;
 
+/**
+ * `KEY=` in a .env file gives an empty string, not an absent variable, which
+ * would defeat every `.default()` and `.optional()` below. Treat empty as unset.
+ */
+function withoutEmptyValues(env: NodeJS.ProcessEnv): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(env).filter((entry): entry is [string, string] => {
+      const [, value] = entry;
+      return value !== undefined && value !== '';
+    }),
+  );
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  const parsed = envSchema.safeParse(env);
+  const parsed = envSchema.safeParse(withoutEmptyValues(env));
 
   if (!parsed.success) {
     const issues = parsed.error.issues
