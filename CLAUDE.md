@@ -198,3 +198,4 @@ screen. Do not create `features/home_screen/`.
 - Commits: Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`).
 - Language: code, comments and docs in English; user-facing strings in Croatian
   (v0.1).
+- No AI attribution lines in commit messages or PR descriptions.
