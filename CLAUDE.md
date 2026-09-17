@@ -42,8 +42,8 @@ dart run build_runner build --delete-conflicting-outputs   # @riverpod codegen
 flutter gen-l10n                                            # regenerate strings from .arb
 ```
 
-CI runs lint, typecheck and test on every PR; `main` deploys automatically. Never
-push to `main` directly.
+CI runs lint, typecheck and test on every PR (`.github/workflows/ci.yml`). There
+is no deploy pipeline yet. Never push to `main` directly.
 
 ## Architecture rules (API)
 
