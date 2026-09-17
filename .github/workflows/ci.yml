@@ -1,0 +1,96 @@
+# Runs the same checks a developer runs locally, on a clean machine.
+# Every job starts from an empty VM: no node_modules, no .env, nothing that is
+# only installed on someone's laptop. That is the point — it catches the class
+# of bug that "works on my machine" hides.
+
+name: CI
+
+# --- When this runs -----------------------------------------------------------
+# `pull_request` fires on every push to a branch that has an open PR.
+# `push: main` covers the merge commit itself.
+# Deliberately no `push` for other branches: that would run this twice for
+# every commit on a branch that already has a PR open.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# --- Don't pay for stale runs -------------------------------------------------
+# Push three commits in a row and the first two results are worthless.
+# Cancel any run still in flight for the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# --- Least privilege ----------------------------------------------------------
+# Every job gets an automatic GITHUB_TOKEN. This one only reads the code, so
+# everything else (pushing commits, opening issues, publishing) stays denied.
+# If a malicious dependency ever executes during CI, it cannot write anything.
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: apps/api
+    runs-on: ubuntu-latest # Linux runners are the cheapest and fastest.
+    timeout-minutes: 10 # Kill a hung job instead of burning an hour.
+
+    # The package lives in apps/api and there is no package.json at the
+    # repository root, so every `run:` step below needs to execute there.
+    # NOTE: this applies to `run:` steps ONLY, never to `uses:` steps — an
+    # action is someone else's program and takes its directory as an input.
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      # Clones the repository onto the empty runner. Without this the machine
+      # has no code at all. First step of essentially every workflow.
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # Pinned to an exact version, not the moving @v2 tag: `working-directory`
+      # and `require-lockfile` below only exist from v2.1.0, and @v2 still points
+      # at v2.0.x. A moving major tag can lag behind its own releases.
+      # One action, four jobs: install pnpm, install Node, restore the pnpm
+      # store from cache, run `pnpm install` (its `install` input defaults to
+      # true). Successor to the older pnpm/action-setup + actions/setup-node pair.
+      #
+      #   working-directory  `defaults.run` above does not reach a `uses:` step,
+      #                      so the action is told where the project is.
+      #   (no version)       pnpm's version is read from devEngines.packageManager
+      #                      in apps/api/package.json — one source of truth with
+      #                      what runs locally.
+      #   runtime            Node is explicit because there is no
+      #                      devEngines.runtime field; declare one and this
+      #                      input can be dropped.
+      #   cache              Keeps the downloaded packages between runs
+      #                      (~40s install becomes ~5s).
+      #   require-lockfile   pnpm already refuses to UPDATE a lockfile in CI, but
+      #                      with no lockfile at all it would happily resolve
+      #                      fresh versions, write one and exit 0 — silently
+      #                      testing different dependencies than we develop
+      #                      against. This makes that case fail instead.
+      - name: Set up pnpm and Node
+        uses: pnpm/setup@v2.1.0
+        with:
+          working-directory: apps/api
+          runtime: node@22
+          cache: true
+          require-lockfile: true
+
+      # The same three scripts from package.json that we run locally — not
+      # special "CI versions". If CI ran something else, the two would drift.
+      # Steps run in order and the first failure ends the job, so lint errors
+      # surface before the slower checks.
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # No database yet: the only test hits /health in memory. When Drizzle
+      # tests arrive, add a `services: postgres:` block here and pass
+      # TEST_DATABASE_URL to this step.
+      - name: Test
+        run: pnpm test
