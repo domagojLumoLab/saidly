@@ -35,6 +35,24 @@ jobs:
     runs-on: ubuntu-latest # Linux runners are the cheapest and fastest.
     timeout-minutes: 10 # Kill a hung job instead of burning an hour.
 
+    # The test suite talks to a real Postgres. GitHub starts this container
+    # alongside the job and maps it onto localhost, so the same TEST_DATABASE_URL
+    # works here and on a laptop running docker-compose.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: saidly
+          POSTGRES_PASSWORD: saidly
+          POSTGRES_DB: saidly
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U saidly -d saidly"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     # The package lives in apps/api and there is no package.json at the
     # repository root, so every `run:` step below needs to execute there.
     # NOTE: this applies to `run:` steps ONLY, never to `uses:` steps — an
@@ -89,8 +107,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      # No database yet: the only test hits /health in memory. When Drizzle
-      # tests arrive, add a `services: postgres:` block here and pass
-      # TEST_DATABASE_URL to this step.
+      # Vitest global setup creates the test database on that service and applies
+      # the migrations before the suite runs.
       - name: Test
         run: pnpm test
+        env:
+          TEST_DATABASE_URL: postgres://saidly:saidly@localhost:5432/saidly_test
