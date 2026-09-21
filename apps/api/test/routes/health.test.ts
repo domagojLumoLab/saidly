@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { app } from '../../src/app.js';
+import { createApp } from '../../src/app.js';
 import { version } from '../../src/lib/version.js';
+import { keys, projectId } from '../helpers/firebase-token.js';
+
+const app = createApp({ auth: { keys, projectId } });
 
 describe('GET /health', () => {
   it('returns ok and the package version', async () => {
