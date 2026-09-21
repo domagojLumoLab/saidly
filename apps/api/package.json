@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate.ts"
   },
   "devEngines": {
     "packageManager": {
@@ -22,13 +24,16 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.13.7",
     "pino": "^10.3.1",
+    "postgres": "^3.4.9",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.5.1",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "pino-pretty": "^13.1.3",
