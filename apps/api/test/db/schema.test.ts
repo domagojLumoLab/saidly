@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createDatabase } from '../../src/db/client.js';
 import { plans, tasks } from '../../src/db/schema.js';
@@ -10,9 +10,12 @@ afterAll(async () => {
   await client.end();
 });
 
+// Test files share one database and Vitest runs them in parallel, so each file
+// cleans up only the users it owns. Tasks go with the plan: the FK cascades.
+const owners = ['firebase-sub-abc', 'u1'];
+
 beforeEach(async () => {
-  // Tasks go with the plan: the FK cascades.
-  await db.delete(plans);
+  await db.delete(plans).where(inArray(plans.userId, owners));
 });
 
 describe('plans and tasks', () => {
@@ -73,6 +76,6 @@ describe('plans and tasks', () => {
 
     await db.delete(plans).where(eq(plans.id, plan!.id));
 
-    expect(await db.select().from(tasks)).toHaveLength(0);
+    expect(await db.select().from(tasks).where(eq(tasks.planId, plan!.id))).toHaveLength(0);
   });
 });

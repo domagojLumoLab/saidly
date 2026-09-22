@@ -30,6 +30,13 @@ export class NotFoundError extends AppError {
   }
 }
 
+/** A request body or query that Zod refused. */
+export class InvalidRequestError extends AppError {
+  constructor(message = 'Invalid request', options?: ErrorOptions) {
+    super('invalid_request', message, 400, options);
+  }
+}
+
 /**
  * Takes no message on purpose: every rejected request gets the same words, so a
  * caller cannot tell an expired token from a forged one. Pass the real reason as
