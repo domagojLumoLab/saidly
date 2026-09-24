@@ -27,6 +27,8 @@ docs/         Architecture, decisions (docs/decisions/NNN-title.md), provider no
 ```bash
 # apps/api
 pnpm dev            # start with tsx --watch on :3000
+pnpm build          # tsc -> dist/, plus the .sql migrations
+pnpm start          # run the build: node dist/index.js
 pnpm test           # Vitest against the Docker Postgres (TEST_DATABASE_URL)
 pnpm lint           # eslint + prettier --check
 pnpm typecheck      # tsc --noEmit
@@ -42,8 +44,8 @@ dart run build_runner build --delete-conflicting-outputs   # @riverpod codegen
 flutter gen-l10n                                            # regenerate strings from .arb
 ```
 
-CI runs lint, typecheck and test on every PR (`.github/workflows/ci.yml`). There
-is no deploy pipeline yet. Never push to `main` directly.
+CI runs lint, typecheck, build and test on every PR (`.github/workflows/ci.yml`).
+There is no deploy pipeline yet. Never push to `main` directly.
 
 ## Architecture rules (API)
 
