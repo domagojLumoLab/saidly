@@ -1,0 +1,20 @@
+{
+  // Production build only. The base config is tuned for the editor and CI,
+  // where `tsc` just checks types and never writes anything; this one turns
+  // that around.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // The base sets noEmit so `pnpm typecheck` stays a pure check.
+    "noEmit": false,
+    "outDir": "dist",
+    // Pins the shape of dist/: src/lib/config.ts becomes dist/lib/config.js.
+    // Without it tsc picks the common root of the inputs, which moves as soon
+    // as a file outside src/ is included.
+    "rootDir": "src",
+    // Stack traces from production point at the .ts line, not the compiled one.
+    "sourceMap": true
+  },
+  // Only the application. Tests, vitest.config.ts and drizzle.config.ts are
+  // checked by `pnpm typecheck` but must never end up in the image.
+  "include": ["src/**/*.ts"]
+}

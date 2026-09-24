@@ -1,0 +1,9 @@
+# Everything the image must not receive, or would only slow the build down.
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
