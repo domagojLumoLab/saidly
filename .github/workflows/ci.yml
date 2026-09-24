@@ -107,6 +107,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # Catches a broken production build here rather than at deploy time,
+      # where the app is already being replaced.
+      - name: Build
+        run: pnpm build
+
       # Vitest global setup creates the test database on that service and applies
       # the migrations before the suite runs.
       - name: Test
