@@ -68,7 +68,17 @@ export function onError(reporter: ErrorReporter) {
       // Expected: a rejected token or a malformed body is normal operation.
       // Reporting these would bury the errors worth waking up for.
       logger.warn(
-        { requestId, code: err.code, status: err.status, err: err.message, cause: err.cause },
+        {
+          requestId,
+          code: err.code,
+          status: err.status,
+          err: err.message,
+          // pino only serialises an Error under the `err` key; anywhere else it
+          // JSON.stringifies it, and an Error's message and stack are not
+          // enumerable, so the reason came out as `{}` — the one thing this
+          // field exists to carry.
+          cause: err.cause instanceof Error ? err.cause.message : err.cause,
+        },
         'app error',
       );
       return c.json({ error: { code: err.code, message: err.message } }, err.status);
