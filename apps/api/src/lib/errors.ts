@@ -1,6 +1,7 @@
 import type { Context, Env } from 'hono';
 import type { RequestIdVariables } from 'hono/request-id';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import type { ErrorReporter } from './error-reporter.js';
 import { logger } from './logger.js';
 
 /**
@@ -50,23 +51,42 @@ export class UnauthorizedError extends AppError {
 
 /**
  * The single error handler. Known `AppError`s are mapped to their status and
- * code; anything else is logged in full and reported as an opaque 500 so
- * stack traces and driver messages never reach a client.
+ * code; anything else is logged in full, reported, and answered with an opaque
+ * 500 so stack traces and driver messages never reach a client.
+ *
+ * Takes the reporter as an argument rather than importing one, so tests can see
+ * what would be reported and nothing is sent from a test run.
  */
-export function onError<E extends { Variables: RequestIdVariables } & Env>(
-  err: Error,
-  c: Context<E>,
-): Response {
-  const requestId = c.get('requestId');
+export function onError(reporter: ErrorReporter) {
+  return <E extends { Variables: RequestIdVariables } & Env>(
+    err: Error,
+    c: Context<E>,
+  ): Response => {
+    const requestId = c.get('requestId');
 
-  if (err instanceof AppError) {
-    logger.warn(
-      { requestId, code: err.code, status: err.status, err: err.message, cause: err.cause },
-      'app error',
-    );
-    return c.json({ error: { code: err.code, message: err.message } }, err.status);
-  }
+    if (err instanceof AppError) {
+      // Expected: a rejected token or a malformed body is normal operation.
+      // Reporting these would bury the errors worth waking up for.
+      logger.warn(
+        { requestId, code: err.code, status: err.status, err: err.message, cause: err.cause },
+        'app error',
+      );
+      return c.json({ error: { code: err.code, message: err.message } }, err.status);
+    }
 
-  logger.error({ requestId, err }, 'unhandled error');
-  return c.json({ error: { code: 'internal_error', message: 'Internal server error' } }, 500);
+    logger.error({ requestId, err }, 'unhandled error');
+
+    // `userId` exists only on authenticated routes, so it is read from the
+    // untyped bag rather than through the typed `c.get`.
+    const userId = (c.var as Record<string, unknown>)['userId'];
+
+    reporter.report(err, {
+      requestId,
+      method: c.req.method,
+      path: c.req.path,
+      ...(typeof userId === 'string' ? { userId } : {}),
+    });
+
+    return c.json({ error: { code: 'internal_error', message: 'Internal server error' } }, 500);
+  };
 }

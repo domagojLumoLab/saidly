@@ -15,6 +15,9 @@ const envSchema = z.object({
   // Only used by the test suite; the server never needs it.
   TEST_DATABASE_URL: z.string().url().optional(),
   FIREBASE_PROJECT_ID: z.string().min(1),
+  // Optional on purpose: with no DSN the SDK is never initialised, so local
+  // development, tests and CI report nothing.
+  SENTRY_DSN: z.string().url().optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   GEMINI_API_KEY: z.string().min(1).optional(),
 });
