@@ -44,8 +44,10 @@ dart run build_runner build --delete-conflicting-outputs   # @riverpod codegen
 flutter gen-l10n                                            # regenerate strings from .arb
 ```
 
-CI runs lint, typecheck, build and test on every PR (`.github/workflows/ci.yml`).
-There is no deploy pipeline yet. Never push to `main` directly.
+CI runs lint, typecheck, build and test on every PR (`.github/workflows/ci.yml`);
+`main` is protected and a red check blocks the merge. Merging into `main` deploys
+the API to Railway, which runs the migrations before traffic moves. Never push to
+`main` directly.
 
 ## Architecture rules (API)
 
