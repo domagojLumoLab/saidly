@@ -11,10 +11,11 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().max(65535).default(3000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
-  DATABASE_URL: z.string().url(),
-  // Only used by the test suite; the server never needs it.
-  TEST_DATABASE_URL: z.string().url().optional(),
+  DATABASE_URL: z.url(),
   FIREBASE_PROJECT_ID: z.string().min(1),
+  // Optional on purpose: with no DSN the SDK is never initialised, so local
+  // development, tests and CI report nothing.
+  SENTRY_DSN: z.url().optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   GEMINI_API_KEY: z.string().min(1).optional(),
 });

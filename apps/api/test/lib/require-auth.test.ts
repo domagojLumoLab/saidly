@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { describe, expect, it } from 'vitest';
+import { noopErrorReporter } from '../../src/lib/error-reporter.js';
 import { onError } from '../../src/lib/errors.js';
 import { requireAuth } from '../../src/lib/require-auth.js';
 import type { AuthedEnv } from '../../src/lib/types.js';
@@ -12,7 +13,7 @@ function makeApp() {
   const app = new Hono<AuthedEnv>();
   app.use('*', requireAuth({ keys, projectId }));
   app.get('/protected', (c) => c.json({ userId: c.get('userId') }));
-  app.onError(onError);
+  app.onError(onError(noopErrorReporter));
   return app;
 }
 
