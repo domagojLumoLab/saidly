@@ -31,7 +31,7 @@ Today is ${weekday} ${localDate} in the user's time zone, ${timeZone} (${utcOffs
 Return every instant in UTC, converted from the user's local time.
 
 For each task:
-- title: what to do, in the user's language, without the time in it
+- title: what to do, in the user's language, without the time in it. Start it with a capital letter even when the user did not.
 - date: the calendar day the task belongs to, in the user's zone
 - startsAt: when it begins, or null when the text gives no start
 - endsAt: when it ends or is due, or null
