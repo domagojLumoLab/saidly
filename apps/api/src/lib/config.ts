@@ -4,8 +4,7 @@ import { z } from 'zod';
  * Environment contract. Parsed once at startup; a missing or malformed variable
  * kills the process before the server binds a port.
  *
- * ANTHROPIC_API_KEY / GEMINI_API_KEY are optional while there is no LLM code
- * (v0.1 skeleton). Make them required in the same commit that adds `src/llm/`.
+ * GEMINI_API_KEY stays optional until a Gemini provider exists.
  */
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -16,7 +15,11 @@ const envSchema = z.object({
   // Optional on purpose: with no DSN the SDK is never initialised, so local
   // development, tests and CI report nothing.
   SENTRY_DSN: z.url().optional(),
-  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  // Required since POST /parse: without it the server starts and every parse
+  // fails, which is worse than not starting.
+  ANTHROPIC_API_KEY: z.string().min(1),
+  // Priced in src/llm/pricing.ts, which refuses a model it has no price for.
+  ANTHROPIC_MODEL: z.enum(['claude-haiku-4-5', 'claude-sonnet-5']).default('claude-haiku-4-5'),
   GEMINI_API_KEY: z.string().min(1).optional(),
 });
 

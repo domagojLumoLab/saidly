@@ -1,3 +1,4 @@
+import { and, count, eq, gt } from 'drizzle-orm';
 import type { Database } from '../db/client.js';
 import { aiCalls } from '../db/schema.js';
 import { AppError } from '../lib/errors.js';
@@ -17,6 +18,13 @@ export type ParseInput = {
 
 /** The model gets one correction and no more; a third call is rarely the one that works. */
 const MAX_ATTEMPTS = 2;
+
+/**
+ * The only limit that actually protects the bill. Counted from ai_calls rather
+ * than a tally of its own, so a retry counts — it was paid for.
+ */
+const CALLS_PER_DAY = 50;
+const A_DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
  * "Sutra" needs a today to be relative to, and that today belongs to the
@@ -46,6 +54,20 @@ export function createParseService({
      * including a retry — a retry is paid for.
      */
     async parse({ userId, text, timeZone, now = new Date() }: ParseInput): Promise<ParsedTask[]> {
+      const [used] = await db
+        .select({ calls: count() })
+        .from(aiCalls)
+        .where(
+          and(
+            eq(aiCalls.userId, userId),
+            gt(aiCalls.createdAt, new Date(now.getTime() - A_DAY_MS)),
+          ),
+        );
+
+      if ((used?.calls ?? 0) >= CALLS_PER_DAY) {
+        throw new AppError('rate_limited', 'Too many plans parsed today', 429);
+      }
+
       const { localDate, weekday } = localDay(now, timeZone);
       let correction: string | undefined;
 

@@ -1,12 +1,11 @@
 import { afterAll, describe, expect, it } from 'vitest';
-import { createApp } from '../../src/app.js';
 import { createDatabase } from '../../src/db/client.js';
-import { createPlanService } from '../../src/services/plan-service.js';
-import { keys, projectId, signToken } from '../helpers/firebase-token.js';
+import { signToken } from '../helpers/firebase-token.js';
+import { buildTestApp } from '../helpers/app.js';
 import { testDatabaseUrl } from '../setup/database.js';
 
 const { db, client } = createDatabase(testDatabaseUrl);
-const app = createApp({ auth: { keys, projectId }, planService: createPlanService(db) });
+const app = buildTestApp({ db });
 
 afterAll(async () => {
   await client.end();

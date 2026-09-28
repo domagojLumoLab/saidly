@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createDatabase } from '../../src/db/client.js';
 import { aiCalls } from '../../src/db/schema.js';
@@ -56,7 +56,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  await db.delete(aiCalls).where(eq(aiCalls.userId, ana));
+  await db.delete(aiCalls).where(inArray(aiCalls.userId, [ana, 'sub-parse-someone-else']));
 });
 
 describe('parse', () => {
@@ -116,6 +116,55 @@ describe('parse', () => {
     await expect(parse(provider)).rejects.toMatchObject({ code: 'parser_failed', status: 502 });
     await expect(parse(fakeProvider([goodPlan]))).resolves.toBeDefined();
     expect(provider.seen).toHaveLength(2);
+  });
+
+  it('refuses a 51st call in a day', async () => {
+    await db.insert(aiCalls).values(
+      Array.from({ length: 50 }, () => ({
+        userId: ana,
+        provider: 'fake',
+        model: 'claude-haiku-4-5',
+        tokensIn: 400,
+        tokensOut: 150,
+        costUsd: '0.001150',
+        latencyMs: 12,
+      })),
+    );
+
+    await expect(parse(fakeProvider([goodPlan]))).rejects.toMatchObject({
+      code: 'rate_limited',
+      status: 429,
+    });
+  });
+
+  it('counts only today, and only this user', async () => {
+    const yesterday = new Date(lateEvening.getTime() - 25 * 60 * 60 * 1000);
+
+    await db.insert(aiCalls).values([
+      // 50 of this user's calls, but a day too old to count.
+      ...Array.from({ length: 50 }, () => ({
+        userId: ana,
+        provider: 'fake',
+        model: 'claude-haiku-4-5',
+        tokensIn: 1,
+        tokensOut: 1,
+        costUsd: '0.000006',
+        latencyMs: 1,
+        createdAt: yesterday,
+      })),
+      // and 50 of someone else's from right now.
+      ...Array.from({ length: 50 }, () => ({
+        userId: 'sub-parse-someone-else',
+        provider: 'fake',
+        model: 'claude-haiku-4-5',
+        tokensIn: 1,
+        tokensOut: 1,
+        costUsd: '0.000006',
+        latencyMs: 1,
+      })),
+    ]);
+
+    await expect(parse(fakeProvider([goodPlan]))).resolves.toBeDefined();
   });
 
   it('refuses a task whose end precedes its start', async () => {
