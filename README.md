@@ -111,6 +111,21 @@ Postgres service, so traffic stays on the private network) and
   Gemini Nano where available.
 - **v1.0** — App Store and Google Play release with subscriptions.
 
+**Voice in v0.2 and Siri in v0.4 are separate pieces of work, not one.** Voice
+input inside the app means recording, permissions and transcription. The Siri
+path involves none of that: Siri transcribes and hands an App Intent a finished
+string, so the app never touches the microphone. Building one brings the other
+no closer, and the Siri path may well be the smaller job.
+
+App Intents are Swift and cannot be written in Dart, and when Siri runs one
+without opening the app there is no Flutter engine to run Dart in. The cheap
+version has the intent open the app with the transcribed text and lets Dart do
+the rest — which also keeps the confirmation screen, where the user sees what
+the parser understood. Having the intent call the API itself would mean a
+second implementation of the request and the token handling in Swift, and no
+confirmation screen; worth it only once the eval numbers say the parser can be
+trusted unseen.
+
 ## Decisions
 
 Short notes on non-obvious choices live in `docs/decisions/`. The first ones:
