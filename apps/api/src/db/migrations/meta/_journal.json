@@ -8,6 +8,13 @@
       "when": 1789719117958,
       "tag": "0000_strange_loners",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790593683273,
+      "tag": "0001_previous_pet_avengers",
+      "breakpoints": true
     }
   ]
 }

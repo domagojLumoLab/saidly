@@ -1,5 +1,15 @@
 import { relations } from 'drizzle-orm';
-import { date, index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  date,
+  index,
+  integer,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 /**
  * These values are a decision made in docs/specs/001-task-storage.md, not a
@@ -53,6 +63,29 @@ export const tasks = pgTable(
   (table) => [index('tasks_plan_id_idx').on(table.planId)],
 );
 
+/**
+ * One row per call to a model — including a retry, because a retry is paid for
+ * too. Required by CLAUDE.md, and the daily per-user cap in spec 005 counts
+ * these rows rather than keeping a separate tally.
+ */
+export const aiCalls = pgTable(
+  'ai_calls',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull(),
+    provider: text('provider').notNull(),
+    model: text('model').notNull(),
+    tokensIn: integer('tokens_in').notNull(),
+    tokensOut: integer('tokens_out').notNull(),
+    // Exact decimal, never a float: these get summed per user, and a single
+    // call costs a fraction of a cent.
+    costUsd: numeric('cost_usd', { precision: 12, scale: 6 }).notNull(),
+    latencyMs: integer('latency_ms').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('ai_calls_user_created_idx').on(table.userId, table.createdAt)],
+);
+
 export const plansRelations = relations(plans, ({ many }) => ({
   tasks: many(tasks),
 }));
@@ -65,3 +98,5 @@ export type Plan = typeof plans.$inferSelect;
 export type NewPlan = typeof plans.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
+export type AiCall = typeof aiCalls.$inferSelect;
+export type NewAiCall = typeof aiCalls.$inferInsert;
