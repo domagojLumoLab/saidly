@@ -1,10 +1,13 @@
 import { serve } from '@hono/node-server';
+import Anthropic from '@anthropic-ai/sdk';
 import { createApp } from './app.js';
 import { createDatabase } from './db/client.js';
 import { googleSecureTokenKeys } from './lib/auth.js';
 import { createSentryReporter, noopErrorReporter } from './lib/error-reporter.js';
 import { loadConfig } from './lib/config.js';
 import { logger } from './lib/logger.js';
+import { createAnthropicProvider } from './llm/anthropic-provider.js';
+import { createParseService } from './services/parse-service.js';
 import { createPlanService } from './services/plan-service.js';
 
 const config = loadConfig();
@@ -24,6 +27,13 @@ const app = createApp({
     projectId: config.FIREBASE_PROJECT_ID,
   },
   planService: createPlanService(db),
+  parseService: createParseService({
+    provider: createAnthropicProvider({
+      client: new Anthropic({ apiKey: config.ANTHROPIC_API_KEY }),
+      model: config.ANTHROPIC_MODEL,
+    }),
+    db,
+  }),
   errorReporter,
 });
 
