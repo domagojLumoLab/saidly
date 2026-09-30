@@ -64,7 +64,7 @@ cp .env.example .env          # fill in DATABASE_URL, FIREBASE_PROJECT_ID, LLM k
 docker compose up -d          # Postgres 16
 pnpm install
 pnpm db:migrate
-pnpm dev                      # http://localhost:3000/health
+pnpm dev                      # http://localhost:3000/health and /ready
 
 # Mobile
 cd apps/mobile
@@ -85,18 +85,26 @@ pnpm eval                     # accuracy, cost and latency per provider
 
 The API runs on Railway, built from `apps/api/Dockerfile` and configured by
 `apps/api/railway.json`. Every merge into `main` deploys: Railway builds the
-image, runs `node dist/db/migrate.js` as a pre-deploy step, waits for `/health`
+image, runs `node dist/db/migrate.js` as a pre-deploy step, waits for `/ready`
 to answer, and only then moves traffic over. A failed migration stops the
 release and leaves the running version serving.
 
 ```bash
 curl https://divine-magic-production-a0d3.up.railway.app/health
-# {"ok":true,"version":"0.1.0"}
+# {"ok":true,"version":"0.1.0"}     the process is up
+curl https://divine-magic-production-a0d3.up.railway.app/ready
+# {"ready":true}                    and the database answers
 ```
 
-Only two variables are set on the service: `DATABASE_URL` (a reference to the
-Postgres service, so traffic stays on the private network) and
-`FIREBASE_PROJECT_ID`. `PORT` comes from Railway and `NODE_ENV` from the image.
+The two are deliberately different questions. `/health` touches nothing, so it
+stays green while the database is unreachable or empty — which is exactly what
+happened here for a week before anyone called a route that reads. `/ready` runs
+`select 1`, and it is what the platform waits for.
+
+Three variables are set on the service: `DATABASE_URL` (a reference to the
+Postgres service, so traffic stays on the private network),
+`FIREBASE_PROJECT_ID` and `ANTHROPIC_API_KEY`. `SENTRY_DSN` is optional but set;
+`PORT` comes from Railway and `NODE_ENV` from the image.
 
 ## Roadmap
 

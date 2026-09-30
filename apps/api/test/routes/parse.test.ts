@@ -1,12 +1,10 @@
 import { inArray } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-import { createApp } from '../../src/app.js';
 import { createDatabase } from '../../src/db/client.js';
 import { aiCalls } from '../../src/db/schema.js';
 import type { LlmProvider } from '../../src/llm/provider.js';
-import { createParseService } from '../../src/services/parse-service.js';
-import { createPlanService } from '../../src/services/plan-service.js';
-import { keys, projectId, signToken } from '../helpers/firebase-token.js';
+import { buildTestApp } from '../helpers/app.js';
+import { signToken } from '../helpers/firebase-token.js';
 import { testDatabaseUrl } from '../setup/database.js';
 
 const { db, client } = createDatabase(testDatabaseUrl);
@@ -25,7 +23,7 @@ const plan = {
   ],
 };
 
-function appWith(output: unknown): ReturnType<typeof createApp> {
+function appWith(output: unknown) {
   const provider: LlmProvider = {
     name: 'fake',
     model: 'claude-haiku-4-5',
@@ -33,11 +31,7 @@ function appWith(output: unknown): ReturnType<typeof createApp> {
       Promise.resolve({ output, usage: { tokensIn: 400, tokensOut: 150, latencyMs: 9 } }),
   };
 
-  return createApp({
-    auth: { keys, projectId },
-    planService: createPlanService(db),
-    parseService: createParseService({ provider, db }),
-  });
+  return buildTestApp({ db, provider });
 }
 
 function post(body: unknown, app = appWith(plan)) {
