@@ -1,5 +1,5 @@
 {
-  "note": "Now is pinned so that relative expressions have stable answers. 2026-10-01 is a Thursday; Zagreb is UTC+2 until 2026-10-25 and UTC+1 after. Omit a field to leave it unasserted; write null to assert it is absent.",
+  "note": "Now is pinned so that relative expressions have stable answers. 2026-10-01 is a Thursday; Zagreb is UTC+2 until 2026-10-25 and UTC+1 after. Omit a field to leave it unasserted; write null to assert it is absent. English is the primary language and Croatian is also supported, so both are covered.",
   "now": "2026-10-01T09:00:00Z",
   "timeZone": "Europe/Zagreb",
   "cases": [
@@ -292,6 +292,191 @@
         {
           "date": "2026-10-02",
           "startsAt": "2026-10-01T23:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-tomorrow",
+      "why": "the ordinary case in the primary language",
+      "text": "tomorrow get up at 7",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:00:00Z",
+          "endsAt": null
+        }
+      ]
+    },
+    {
+      "id": "en-half-past",
+      "why": "the English counterpart of 'pola osam' — unambiguous here",
+      "text": "tomorrow get up at half past seven",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-quarter-to",
+      "why": "quarter to eight is 07:45, not 08:15",
+      "text": "tomorrow leave at a quarter to eight",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:45:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-deadline-noon",
+      "why": "a due time with no start",
+      "text": "tomorrow call Marko before noon",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": "2026-10-02T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-deadline-pm",
+      "why": "the 12-hour clock — 3pm is 15:00",
+      "text": "tomorrow send the quote by 3pm",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": "2026-10-02T13:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-range-12h",
+      "why": "a range written on the 12-hour clock",
+      "text": "tomorrow practice 7pm-8:30pm",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T17:00:00Z",
+          "endsAt": "2026-10-02T18:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-range-words",
+      "why": "from seven to eight",
+      "text": "tomorrow gym from 7 to 8",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:00:00Z",
+          "endsAt": "2026-10-02T06:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-no-time",
+      "why": "neither instant",
+      "text": "tomorrow buy bread",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": null
+        }
+      ]
+    },
+    {
+      "id": "en-weekday-next-week",
+      "why": "Monday has passed this week",
+      "text": "on Monday doctor at 9",
+      "expect": [
+        {
+          "date": "2026-10-05",
+          "startsAt": "2026-10-05T07:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-in-two-weeks",
+      "why": "relative to the pinned today",
+      "text": "in two weeks checkup at 11",
+      "expect": [
+        {
+          "date": "2026-10-15",
+          "startsAt": "2026-10-15T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-four-tasks",
+      "why": "the README example in English",
+      "text": "tomorrow get up at 7, call Marko before noon, practice 19:00-20:30, buy bread",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:00:00Z",
+          "endsAt": null
+        },
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": "2026-10-02T10:00:00Z"
+        },
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T17:00:00Z",
+          "endsAt": "2026-10-02T18:30:00Z"
+        },
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": null
+        }
+      ]
+    },
+    {
+      "id": "en-urgent",
+      "why": "urgent should raise the priority",
+      "text": "tomorrow urgently send the contract by 10",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "endsAt": "2026-10-02T08:00:00Z",
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "en-no-plan",
+      "why": "nothing to do",
+      "text": "hey, how are you doing",
+      "expect": []
+    },
+    {
+      "id": "en-other-zone-morning",
+      "why": "a zone west of UTC — New York is UTC-4 in October",
+      "text": "tomorrow get up at 7",
+      "timeZone": "America/New_York",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T11:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "en-other-zone-evening",
+      "why": "same zone, an evening time",
+      "text": "tomorrow dinner at 7pm",
+      "timeZone": "America/New_York",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T23:00:00Z"
         }
       ]
     }

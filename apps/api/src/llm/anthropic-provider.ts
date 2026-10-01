@@ -10,8 +10,18 @@ import type { LlmProvider, LlmResponse, ParseRequest } from './provider.js';
  */
 const MAX_TOKENS = 1024;
 
+/**
+ * Extraction wants the most likely answer, not a sampled one: the same sentence
+ * should parse the same way twice, and an eval whose score moves on its own is
+ * not measuring anything.
+ *
+ * Only some models still accept it. Sampling parameters were removed on the
+ * newer ones and are rejected with a 400, so this is a list rather than a flag.
+ */
+const ACCEPTS_TEMPERATURE = new Set(['claude-haiku-4-5']);
+
 function systemPrompt({ timeZone, localDate, weekday }: ParseRequest): string {
-  return `You turn a few sentences about a day into a list of tasks. The user writes in their own language, usually Croatian.
+  return `You turn a few sentences about a day into a list of tasks. The user writes in their own language — usually English, sometimes Croatian.
 
 Today is ${weekday} ${localDate} in the user's time zone, ${timeZone}. Resolve every relative expression — "sutra", "prekosutra", "u ponedjeljak", "za tjedan dana" — against that date.
 
@@ -56,6 +66,7 @@ export function createAnthropicProvider({
           max_tokens: MAX_TOKENS,
           system: systemPrompt(request),
           messages: [{ role: 'user', content }],
+          ...(ACCEPTS_TEMPERATURE.has(model) ? { temperature: 0 } : {}),
           output_config: { format: zodOutputFormat(parsedPlanSchema) },
         });
       } catch (cause) {

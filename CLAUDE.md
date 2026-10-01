@@ -95,7 +95,7 @@ lib/
     │   ├── plan/                  # enter text → parsed plan → confirm  (the core feature)
     │   ├── tasks/                 # today's tasks, mark done
     │   └── reminders/             # scheduling local notifications from tasks
-    ├── localization/              # app_hr.arb (+ app_en.arb later), string_hardcoded.dart
+    ├── localization/              # app_en.arb (+ app_hr.arb), string_hardcoded.dart
     ├── routing/                   # app_router.dart, go_router_refresh_stream.dart, not_found_screen.dart
     └── utils/                     # async_value_ui.dart, date formatters, in_memory_store.dart
 ```
@@ -165,8 +165,9 @@ screen. Do not create `features/home_screen/`.
   401. Only repositories use it.
 - Reminders are scheduled locally with `flutter_local_notifications`; the server
   never sends reminder pushes in v0.1.
-- Strings: user-facing Croatian in v0.1 via `flutter_localizations` + `app_hr.arb`;
-  while a string has no key, mark it with `.hardcoded` so it is greppable later.
+- Strings: English first via `flutter_localizations` + `app_en.arb`, with
+  `app_hr.arb` alongside it — Croatian is supported, not primary. While a string
+  has no key, mark it with `.hardcoded` so it is greppable later.
 - Tests: unit tests for controllers, services and repositories with `mocktail`
   fakes; widget tests for each screen's loading/error/empty state; goldens only
   for the plan review screen. Test files mirror `lib/` under `test/`.
@@ -202,6 +203,7 @@ screen. Do not create `features/home_screen/`.
   `PascalCase` for types, `kebab-case.ts` filenames.
 - Dart: `flutter_lints` defaults, `snake_case.dart` filenames.
 - Commits: Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`).
-- Language: code, comments and docs in English; user-facing strings in Croatian
-  (v0.1).
+- Language: code, comments and docs in English. User-facing strings in English
+  first, Croatian alongside. The parser accepts both: `pnpm eval` covers English
+  and Croatian cases, and the prompt says so.
 - No AI attribution lines in commit messages or PR descriptions.
