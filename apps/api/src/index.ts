@@ -1,6 +1,7 @@
 import { serve } from '@hono/node-server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createApp } from './app.js';
+import { sql } from 'drizzle-orm';
 import { createDatabase } from './db/client.js';
 import { googleSecureTokenKeys } from './lib/auth.js';
 import { createSentryReporter, noopErrorReporter } from './lib/error-reporter.js';
@@ -34,6 +35,11 @@ const app = createApp({
     }),
     db,
   }),
+  // The cheapest question that proves the database is reachable and answering.
+  isReady: async () => {
+    await db.execute(sql`select 1`);
+    return true;
+  },
   errorReporter,
 });
 

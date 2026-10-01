@@ -8,6 +8,7 @@ import { requestLogger } from './lib/request-logger.js';
 import { requireAuth } from './lib/require-auth.js';
 import type { AppEnv } from './lib/types.js';
 import { healthRoutes } from './routes/health.js';
+import { createReadyRoutes } from './routes/ready.js';
 import { meRoutes } from './routes/me.js';
 import { createParseRoutes } from './routes/parse.js';
 import { createPlanRoutes } from './routes/plans.js';
@@ -20,6 +21,8 @@ export type AppOptions = {
   auth: AuthOptions;
   planService: PlanService;
   parseService: ParseService;
+  /** Answers whether the service can reach what it needs. */
+  isReady: () => Promise<boolean>;
   /** Where unexpected errors go. Defaults to reporting nowhere. */
   errorReporter?: ErrorReporter;
 };
@@ -32,6 +35,7 @@ export function createApp({
   auth,
   planService,
   parseService,
+  isReady,
   errorReporter = noopErrorReporter,
 }: AppOptions) {
   const app = new Hono<AppEnv>();
@@ -41,6 +45,7 @@ export function createApp({
 
   // Public.
   app.route('/health', healthRoutes);
+  app.route('/ready', createReadyRoutes(isReady));
 
   // Everything below needs a valid Firebase ID token.
   app.use('/me', requireAuth(auth));
