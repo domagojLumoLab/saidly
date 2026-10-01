@@ -10,7 +10,7 @@ import { InvalidRequestError } from './errors.js';
  * log. The client is told only that the request was invalid, because the
  * schema is ours and describing it back is of no use to a caller.
  */
-export function validate<T extends ZodType>(target: 'json' | 'query', schema: T) {
+export function validate<T extends ZodType>(target: 'json' | 'query' | 'param', schema: T) {
   return zValidator(target, schema, (result) => {
     if (!result.success) {
       throw new InvalidRequestError(undefined, { cause: result.error });

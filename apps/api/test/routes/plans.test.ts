@@ -126,3 +126,56 @@ describe('GET /tasks', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('PATCH /tasks/:id', () => {
+  async function createTask() {
+    const created = (await (await post(anaToken)).json()) as { tasks: { id: string }[] };
+    return created.tasks[0]!.id;
+  }
+
+  function patch(id: string, body: unknown, token = anaToken) {
+    return app.request(`/tasks/${id}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  it('marks a task done and back again', async () => {
+    const id = await createTask();
+
+    const done = await patch(id, { done: true });
+    expect(done.status).toBe(200);
+    expect((await done.json()) as { doneAt: string | null }).toMatchObject({
+      doneAt: expect.any(String),
+    });
+
+    const undone = await patch(id, { done: false });
+    expect((await undone.json()) as { doneAt: string | null }).toMatchObject({ doneAt: null });
+  });
+
+  it("will not touch another user's task", async () => {
+    const res = await patch(await createTask(), { done: true }, markoToken);
+
+    expect(res.status).toBe(404);
+  });
+
+  it('refuses an id that is not a uuid, rather than letting the database decide', async () => {
+    const res = await patch('not-a-uuid', { done: true });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('refuses a body without done', async () => {
+    expect((await patch(await createTask(), {})).status).toBe(400);
+  });
+
+  it('refuses a request without a token', async () => {
+    const res = await app.request(`/tasks/${await createTask()}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ done: true }),
+    });
+
+    expect(res.status).toBe(401);
+  });
+});

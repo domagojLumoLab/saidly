@@ -12,6 +12,7 @@ const recordingReporter: ErrorReporter = {
   report(error, context) {
     reported.push({ error, context });
   },
+  flush: () => Promise.resolve(),
 };
 
 function appThrowing(error: Error) {

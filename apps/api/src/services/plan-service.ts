@@ -1,5 +1,6 @@
-import { and, asc, eq, getTableColumns, sql } from 'drizzle-orm';
+import { and, asc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import type { Database } from '../db/client.js';
+import { NotFoundError } from '../lib/errors.js';
 import type { Task } from '../db/schema.js';
 import { plans, tasks } from '../db/schema.js';
 
@@ -59,6 +60,35 @@ export function createPlanService(db: Database['db']) {
 
         return { ...plan, tasks: stored };
       });
+    },
+
+    /**
+     * Marks a task finished, or unfinished again. `done_at` carries both facts:
+     * whether, and when.
+     *
+     * Ownership is part of the same statement rather than a lookup before it —
+     * a task is only reachable through a plan the caller owns. A task that
+     * belongs to someone else is reported as missing, because confirming it
+     * exists would already say too much.
+     */
+    async markDone(userId: string, taskId: string, done: boolean): Promise<Task> {
+      const [updated] = await db
+        .update(tasks)
+        .set({ doneAt: done ? new Date() : null })
+        .where(
+          and(
+            eq(tasks.id, taskId),
+            inArray(
+              tasks.planId,
+              db.select({ id: plans.id }).from(plans).where(eq(plans.userId, userId)),
+            ),
+          ),
+        )
+        .returning();
+
+      if (!updated) throw new NotFoundError('Task not found');
+
+      return updated;
     },
 
     /**

@@ -51,6 +51,7 @@ export function createApp({
   app.use('/me', requireAuth(auth));
   app.use('/plans', requireAuth(auth));
   app.use('/tasks', requireAuth(auth));
+  app.use('/tasks/*', requireAuth(auth));
   app.use('/parse', requireAuth(auth));
 
   app.route('/me', meRoutes);
