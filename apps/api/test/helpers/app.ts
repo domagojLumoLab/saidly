@@ -27,5 +27,6 @@ export function buildTestApp({
     auth: { keys, projectId },
     planService: createPlanService(db),
     parseService: createParseService({ provider, db }),
+    isReady: () => Promise.resolve(true),
   });
 }
