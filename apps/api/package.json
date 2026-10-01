@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate.ts"
+    "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate.ts",
+    "eval": "tsx --env-file-if-exists=.env eval/run.mts"
   },
   "devEngines": {
     "packageManager": {

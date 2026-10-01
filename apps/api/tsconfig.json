@@ -26,6 +26,7 @@
     "test/**/*.ts",
     "drizzle.config.ts",
     "vitest.config.ts",
-    "eslint.config.js"
+    "eslint.config.js",
+    "eval/**/*.mts"
   ]
 }

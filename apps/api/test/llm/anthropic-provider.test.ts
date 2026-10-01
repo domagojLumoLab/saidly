@@ -38,7 +38,7 @@ const request: ParseRequest = {
 const plan = { tasks: [] };
 
 describe('anthropic provider', () => {
-  it('tells the model the day, the zone and its offset', async () => {
+  it('tells the model which day it is and in which zone', async () => {
     const { client, calls } = stubClient(plan);
 
     await createAnthropicProvider({ client, model: 'claude-haiku-4-5' }).parse(request);
@@ -46,19 +46,12 @@ describe('anthropic provider', () => {
     const system = String(calls[0]?.system);
     expect(system).toContain('Tuesday 2026-09-29');
     expect(system).toContain('Europe/Zagreb');
-    expect(system).toContain('GMT+02:00');
   });
 
-  it('uses the winter offset for a winter date', async () => {
-    const { client, calls } = stubClient(plan);
-
-    await createAnthropicProvider({ client, model: 'claude-haiku-4-5' }).parse({
-      ...request,
-      localDate: '2026-12-29',
-    });
-
-    expect(String(calls[0]?.system)).toContain('GMT+01:00');
-  });
+  // The prompt used to assert a UTC offset computed for today, which was wrong
+  // for any task past a daylight saving change — eval/cases.json caught it on
+  // the first run. The zone name alone is now passed and the conversion is the
+  // model's, so the check for it lives in the eval rather than here.
 
   it('sends the text alone on the first attempt', async () => {
     const { client, calls } = stubClient(plan);

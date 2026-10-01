@@ -1,0 +1,299 @@
+{
+  "note": "Now is pinned so that relative expressions have stable answers. 2026-10-01 is a Thursday; Zagreb is UTC+2 until 2026-10-25 and UTC+1 after. Omit a field to leave it unasserted; write null to assert it is absent.",
+  "now": "2026-10-01T09:00:00Z",
+  "timeZone": "Europe/Zagreb",
+  "cases": [
+    {
+      "id": "today-implicit",
+      "why": "no day word at all — it is today",
+      "text": "ustati u 7",
+      "expect": [
+        {
+          "date": "2026-10-01",
+          "startsAt": "2026-10-01T05:00:00Z",
+          "endsAt": null
+        }
+      ]
+    },
+    {
+      "id": "tomorrow",
+      "why": "the most common word in the product",
+      "text": "sutra ustati u 7",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:00:00Z",
+          "endsAt": null
+        }
+      ]
+    },
+    {
+      "id": "day-after-tomorrow",
+      "why": "prekosutra",
+      "text": "prekosutra trening u 18",
+      "expect": [
+        {
+          "date": "2026-10-03",
+          "startsAt": "2026-10-03T16:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "weekday-that-is-tomorrow",
+      "why": "1 Oct is Thursday, so Friday is tomorrow — not next week",
+      "text": "u petak sastanak u 10",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T08:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "weekday-next-week",
+      "why": "Monday has passed this week",
+      "text": "u ponedjeljak doktor u 9",
+      "expect": [
+        {
+          "date": "2026-10-05",
+          "startsAt": "2026-10-05T07:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "in-a-week",
+      "why": "za tjedan dana",
+      "text": "za tjedan dana platiti račun",
+      "expect": [
+        {
+          "date": "2026-10-08"
+        }
+      ]
+    },
+    {
+      "id": "in-two-weeks",
+      "why": "za dva tjedna",
+      "text": "za dva tjedna kontrola u 11",
+      "expect": [
+        {
+          "date": "2026-10-15",
+          "startsAt": "2026-10-15T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "end-of-month",
+      "why": "vague on purpose — only the month is asserted",
+      "text": "krajem mjeseca poslati prijavu",
+      "expect": [
+        {
+          "dateBetween": ["2026-10-24", "2026-10-31"]
+        }
+      ]
+    },
+    {
+      "id": "after-the-clocks-change",
+      "why": "30 Oct is UTC+1, not UTC+2 — the whole reason the offset is computed per day",
+      "text": "30. listopada sastanak u 10",
+      "expect": [
+        {
+          "date": "2026-10-30",
+          "startsAt": "2026-10-30T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "deadline-before-noon",
+      "why": "a due time, with no start",
+      "text": "sutra nazvati Marka prije podne",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": "2026-10-02T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "deadline-by-hour",
+      "why": "do 15h",
+      "text": "sutra poslati ponudu do 15h",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": "2026-10-02T13:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "range-with-dash",
+      "why": "19:00-20:30",
+      "text": "sutra harmonika 19:00-20:30",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T17:00:00Z",
+          "endsAt": "2026-10-02T18:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "range-with-words",
+      "why": "od 7 do 8",
+      "text": "sutra trening od 7 do 8",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:00:00Z",
+          "endsAt": "2026-10-02T06:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "no-time-at-all",
+      "why": "both instants absent",
+      "text": "sutra kupiti kruh",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": null
+        }
+      ]
+    },
+    {
+      "id": "half-past",
+      "why": "pola osam means 7:30, not 8:30",
+      "text": "sutra ustati u pola osam",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "quarter-past",
+      "why": "i petnaest",
+      "text": "sutra sastanak u devet i petnaest",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T07:15:00Z"
+        }
+      ]
+    },
+    {
+      "id": "evening-vague",
+      "why": "navečer has no exact hour — only the day is asserted",
+      "text": "sutra navečer nazvati mamu",
+      "expect": [
+        {
+          "date": "2026-10-02"
+        }
+      ]
+    },
+    {
+      "id": "two-tasks-one-sentence",
+      "why": "a single sentence holding two obligations",
+      "text": "sutra ujutro trčanje pa doručak s Anom u 9",
+      "expect": [
+        {
+          "date": "2026-10-02"
+        },
+        {
+          "date": "2026-10-02"
+        }
+      ]
+    },
+    {
+      "id": "four-tasks",
+      "why": "the example from the README",
+      "text": "sutra ustati u 7, nazvati Marka prije podne, harmonika 19:00-20:30, kupiti kruh",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T05:00:00Z",
+          "endsAt": null
+        },
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": "2026-10-02T10:00:00Z"
+        },
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T17:00:00Z",
+          "endsAt": "2026-10-02T18:30:00Z"
+        },
+        {
+          "date": "2026-10-02",
+          "startsAt": null,
+          "endsAt": null
+        }
+      ]
+    },
+    {
+      "id": "two-days-in-one-text",
+      "why": "not every task belongs to the same day",
+      "text": "sutra trening u 18, a u ponedjeljak doktor u 9",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T16:00:00Z"
+        },
+        {
+          "date": "2026-10-05",
+          "startsAt": "2026-10-05T07:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "urgent",
+      "why": "hitno should raise the priority",
+      "text": "sutra hitno poslati ugovor do 10",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "endsAt": "2026-10-02T08:00:00Z",
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "no-plan-greeting",
+      "why": "nothing to do — an empty list, not an invented task",
+      "text": "bok, kako si",
+      "expect": []
+    },
+    {
+      "id": "no-plan-gibberish",
+      "why": "unrelated words must not become tasks",
+      "text": "asdf qwerty jkl",
+      "expect": []
+    },
+    {
+      "id": "late-evening",
+      "why": "a late task stays on the day the user means",
+      "text": "sutra gledati film u 23:30",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-02T21:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "after-midnight",
+      "why": "01:00 local is the previous day in UTC — date and startsAt disagree, and both are right",
+      "text": "sutra u 1 ujutro gledati film",
+      "expect": [
+        {
+          "date": "2026-10-02",
+          "startsAt": "2026-10-01T23:00:00Z"
+        }
+      ]
+    }
+  ]
+}
