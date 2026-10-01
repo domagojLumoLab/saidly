@@ -15,11 +15,18 @@ export type ErrorContext = {
  */
 export type ErrorReporter = {
   report(error: unknown, context: ErrorContext): void;
+  /**
+   * Sends anything still queued. Reports leave asynchronously, so a process
+   * that exits straight after an error loses the very report that explains
+   * why it exited.
+   */
+  flush(): Promise<void>;
 };
 
 /** Used whenever SENTRY_DSN is absent: development, tests, CI. */
 export const noopErrorReporter: ErrorReporter = {
   report() {},
+  flush: () => Promise.resolve(),
 };
 
 export type SentryOptions = {
@@ -55,6 +62,12 @@ export function createSentryReporter({ dsn, environment }: SentryOptions): Error
         if (userId) scope.setTag('userId', userId);
         Sentry.captureException(error);
       });
+    },
+
+    async flush() {
+      // Two seconds: long enough for a report to leave, short enough that a
+      // shutdown is not held up by a network that is already failing.
+      await Sentry.flush(2000);
     },
   };
 }

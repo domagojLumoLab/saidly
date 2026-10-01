@@ -63,6 +63,43 @@ describe('createPlan', () => {
   });
 });
 
+describe('markDone', () => {
+  it('records when a task was finished', async () => {
+    const created = await service.createPlan(input(ana));
+    const task = created.tasks[0]!;
+
+    const updated = await service.markDone(ana, task.id, true);
+
+    expect(updated.doneAt).toBeInstanceOf(Date);
+    expect(await service.tasksForDay(ana, date)).toContainEqual(
+      expect.objectContaining({ id: task.id, doneAt: updated.doneAt }),
+    );
+  });
+
+  it('can undo it', async () => {
+    const created = await service.createPlan(input(ana));
+    const task = created.tasks[0]!;
+    await service.markDone(ana, task.id, true);
+
+    expect((await service.markDone(ana, task.id, false)).doneAt).toBeNull();
+  });
+
+  it("refuses another user's task, and says nothing about whether it exists", async () => {
+    const created = await service.createPlan(input(ana));
+
+    await expect(service.markDone(marko, created.tasks[0]!.id, true)).rejects.toMatchObject({
+      code: 'not_found',
+      status: 404,
+    });
+  });
+
+  it("refuses an id that is nobody's", async () => {
+    await expect(
+      service.markDone(ana, '00000000-0000-0000-0000-000000000000', true),
+    ).rejects.toMatchObject({ code: 'not_found' });
+  });
+});
+
 describe('tasksForDay', () => {
   it('returns the day in order, untimed tasks last', async () => {
     const plan = input(ana);
