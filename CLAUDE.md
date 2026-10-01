@@ -17,8 +17,9 @@ Every feature must be finishable in a 2-hour session or split into pieces that a
 
 ```
 apps/api      Hono + TypeScript (ESM) · Drizzle ORM · Postgres 16 · Vitest
+apps/api/eval Parser cases (cases.json) and runner — inside the package because
+              it runs the API's code and needs its dependencies
 apps/mobile   Flutter 3.x · Riverpod 3 (codegen) · go_router · Dio · firebase_auth · flutter_local_notifications
-eval/         Parser test cases (JSON) and runner
 docs/         Architecture, decisions (docs/decisions/NNN-title.md), provider notes
 ```
 
@@ -34,7 +35,8 @@ pnpm lint           # eslint + prettier --check
 pnpm typecheck      # tsc --noEmit
 pnpm db:generate    # drizzle-kit generate (after editing src/db/schema.ts)
 pnpm db:migrate     # apply migrations
-pnpm eval           # run eval/ cases against configured providers
+pnpm eval           # accuracy, cost and latency over eval/cases.json
+pnpm eval --model claude-sonnet-5   # same cases, another model
 
 # apps/mobile
 flutter analyze

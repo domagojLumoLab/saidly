@@ -45,8 +45,8 @@ flowchart LR
 saidly/
 ├── apps/
 │   ├── api/        Hono + TypeScript + Drizzle + Postgres   (Node 22)
+│   │   └── eval/   Croatian parser cases, run by `pnpm eval`
 │   └── mobile/     Flutter app                             (Flutter 3.x)
-├── eval/           Croatian/English test cases for the parser + runner
 ├── docs/           Architecture notes, decisions, provider comparison
 ├── CLAUDE.md       Working rules for AI coding agents
 └── README.md
