@@ -11,24 +11,23 @@ import type { LlmProvider, LlmResponse, ParseRequest } from './provider.js';
 const MAX_TOKENS = 1024;
 
 /**
- * The model is told the zone's offset rather than left to work it out. It
- * changes with daylight saving, so it is computed for the day in question.
+ * Extraction wants the most likely answer, not a sampled one: the same sentence
+ * should parse the same way twice, and an eval whose score moves on its own is
+ * not measuring anything.
+ *
+ * Only some models still accept it. Sampling parameters were removed on the
+ * newer ones and are rejected with a 400, so this is a list rather than a flag.
  */
-function utcOffset(localDate: string, timeZone: string): string {
-  const noon = new Date(`${localDate}T12:00:00Z`);
-  return (
-    new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })
-      .formatToParts(noon)
-      .find((part) => part.type === 'timeZoneName')?.value ?? 'GMT+00:00'
-  );
-}
+const ACCEPTS_TEMPERATURE = new Set(['claude-haiku-4-5']);
 
 function systemPrompt({ timeZone, localDate, weekday }: ParseRequest): string {
-  return `You turn a few sentences about a day into a list of tasks. The user writes in their own language, usually Croatian.
+  return `You turn a few sentences about a day into a list of tasks. The user writes in their own language — usually English, sometimes Croatian.
 
-Today is ${weekday} ${localDate} in the user's time zone, ${timeZone} (${utcOffset(localDate, timeZone)}). Resolve every relative expression — "sutra", "prekosutra", "u ponedjeljak", "za tjedan dana" — against that date.
+Today is ${weekday} ${localDate} in the user's time zone, ${timeZone}. Resolve every relative expression — "sutra", "prekosutra", "u ponedjeljak", "za tjedan dana" — against that date.
 
-Return every instant in UTC, converted from the user's local time.
+Return every instant in UTC, converted from the user's local time. Use the offset that zone has on the task's own date, not today's — it changes with daylight saving.
+
+In Croatian, "pola <n>" means thirty minutes BEFORE n o'clock, not after: "pola osam" is 07:30 and not 08:30, "pola devet" is 08:30 and not 09:30.
 
 For each task:
 - title: what to do, in the user's language, without the time in it. Start it with a capital letter even when the user did not.
@@ -67,6 +66,7 @@ export function createAnthropicProvider({
           max_tokens: MAX_TOKENS,
           system: systemPrompt(request),
           messages: [{ role: 'user', content }],
+          ...(ACCEPTS_TEMPERATURE.has(model) ? { temperature: 0 } : {}),
           output_config: { format: zodOutputFormat(parsedPlanSchema) },
         });
       } catch (cause) {

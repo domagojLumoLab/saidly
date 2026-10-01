@@ -45,8 +45,8 @@ flowchart LR
 saidly/
 ├── apps/
 │   ├── api/        Hono + TypeScript + Drizzle + Postgres   (Node 22)
+│   │   └── eval/   English and Croatian parser cases, run by `pnpm eval`
 │   └── mobile/     Flutter app                             (Flutter 3.x)
-├── eval/           Croatian/English test cases for the parser + runner
 ├── docs/           Architecture notes, decisions, provider comparison
 ├── CLAUDE.md       Working rules for AI coding agents
 └── README.md
@@ -142,7 +142,7 @@ Short notes on non-obvious choices live in `docs/decisions/`. The first ones:
   user, provider switching) is the part clients actually pay for.
 - Local notifications instead of push for reminders: they work offline and need no
   server round-trip at the exact minute.
-- Text before voice: Croatian relative time expressions and reliable scheduling
+- Text before voice: relative time expressions and reliable scheduling
   are the hard problems; both can be solved with typed input first.
 
 ## License

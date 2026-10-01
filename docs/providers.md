@@ -91,11 +91,31 @@ before believing it.
 this task is a lot, and most of it is schema. Halving it halves the input cost
 everywhere, with no caching machinery and no model change.
 
+## Measured accuracy
+
+`pnpm eval` over 40 cases — 15 English, 25 Croatian — with `now` pinned so
+relative expressions have stable answers. Three runs each:
+
+| | accuracy | cost / 40 | avg latency |
+|---|---|---|---|
+| **Claude Haiku 4.5** | 39/40 · 98% | $0.076 | 1.3 s |
+| Claude Sonnet 5 | 25/25 on the Croatian set, three runs | $0.150 / 25 | 3.0 s |
+
+Haiku scores **15/15 on English**, including the traps: "half past seven",
+"a quarter to eight", "3pm", a 12-hour range, and two cases in a zone west of
+UTC. Its single failure anywhere is the Croatian idiom *"pola osam"*, which it
+reads as 08:30 through three different prompt phrasings while Sonnet gets it
+with the same prompt — so that is a model limit rather than a prompt problem.
+
+`temperature: 0` makes Haiku deterministic: three runs produced identical
+scores and identical token counts. Sonnet 5 rejects sampling parameters
+(removed on the newer models), so its numbers still move slightly.
+
 ## For v0.1
 
-Stay on **Claude Haiku 4.5**. `pnpm eval` is what decides whether it is good
-enough at Croatian; if it is not, the Sonnet arithmetic above says the switch
-costs less than it appears.
+**Claude Haiku 4.5.** English is the primary language and Haiku is perfect on
+it; paying 3× for one Croatian idiom is not a trade worth making. The model is
+an environment variable, so revisiting costs a minute and no deploy.
 
 These numbers go into `src/llm/pricing.ts`, the only place prices may live, and
 `ai_calls` stores the cost per call — so a stale price there silently corrupts
