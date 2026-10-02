@@ -200,9 +200,9 @@ screen. Do not create `features/home_screen/`.
 - Do not add dependencies without saying why in the PR; prefer the standard
   library and what is already installed.
 - Do not commit secrets, `.env` files or API keys. `.env.example` documents the keys.
-  One named exception, agreed but not yet applied: `apps/mobile/lib/firebase_options.dart`,
+  One named exception: `apps/mobile/lib/firebase_options.dart`,
   `ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json`
-  are to be committed; `.gitignore` still excludes them. A Firebase client config is shipped inside every binary and
+  are committed. A Firebase client config is shipped inside every binary and
   authorises nothing on its own — see `docs/decisions/002`. The test: a value
   that reaches every user is public by construction; a value the server holds
   is not.

@@ -1,14 +1,11 @@
 # 002 — Firebase client config is committed, despite the "no API keys" rule
 
-**Date:** 2026-10-01 · **Status:** accepted, **not yet applied**
+**Date:** 2026-10-01 · **Status:** accepted, applied 2026-10-02
 
-> The repository's `.gitignore` has excluded these three paths since the
-> initial commit (5823661, 2026-09-10), with the note "keep it out until the
-> app is public". This decision reverses that, and the reversal was agreed
-> without that earlier rule being on the table. The `.gitignore` lines stay
-> until that is confirmed; nothing imports the files yet, so the tree builds
-> and tests either way. Confirm before `main.dart`, which is the first thing
-> that needs them.
+> This reverses a rule from the initial commit (5823661, 2026-09-10), which
+> ignored these three paths with the note "keep it out until the app is
+> public". That threshold was wrong — see below — and the ignore lines were
+> removed once the reversal was agreed knowing what it replaced.
 
 ## Context
 `flutterfire configure` generated three files for `apps/mobile`:

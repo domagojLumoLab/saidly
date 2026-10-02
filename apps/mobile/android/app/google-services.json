@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "801962758141",
+    "project_id": "saidly-fa231",
+    "storage_bucket": "saidly-fa231.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:801962758141:android:fdf7d48433ad08c3089394",
+        "android_client_info": {
+          "package_name": "com.lumolab.saidlyapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3LTV4o6AmuvoJ2vacO3_4b5xGXOi3o_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
