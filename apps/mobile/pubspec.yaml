@@ -1,0 +1,58 @@
+name: saidly
+description: "Turn a few sentences about tomorrow into a plan with timed reminders."
+publish_to: 'none'
+version: 0.1.0+1
+
+# 3.13 rather than the 3.12 `flutter create` wrote: riverpod_lint 3.1.9 requires
+# it. Declaring it here turns "version solving failed" into one clear sentence.
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management and DI. Riverpod only, per CLAUDE.md — no second
+  # container, no provider/bloc alongside it.
+  flutter_riverpod: ^3.4.3
+  riverpod_annotation: ^4.0.7
+
+  # Navigation. One GoRouter in src/routing/, the auth guard lives in redirect.
+  go_router: ^17.5.0
+
+  # HTTP. One Dio instance from dioProvider; its interceptor attaches the
+  # Firebase ID token. Only repositories are allowed to touch it.
+  dio: ^5.11.1
+
+  # Auth. firebase_core initialises the SDK, firebase_auth issues the token the
+  # API verifies with jose. No Firebase Admin anywhere — that is a server thing.
+  firebase_core: ^4.15.0
+  firebase_auth: ^6.7.0
+
+  # Strings and dates. English is the template ARB, Croatian sits beside it.
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Codegen for @riverpod. Run: dart run build_runner build --delete-conflicting-outputs
+  build_runner: ^2.16.1
+  riverpod_generator: ^4.0.9
+
+  # Riverpod's own lint rules. Since 3.1.0 it runs on analysis_server_plugin
+  # instead of custom_lint, so it is enabled under `plugins:` in
+  # analysis_options.yaml and reported by plain `flutter analyze`.
+  riverpod_lint: ^3.1.9
+
+  # Fakes for repository and controller tests.
+  mocktail: ^1.0.5
+
+flutter:
+  uses-material-design: true
+  # Lets flutter_gen build AppLocalizations from the .arb files in
+  # lib/src/localization.
+  generate: true

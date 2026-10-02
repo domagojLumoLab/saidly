@@ -1,0 +1,97 @@
+/// Every error this app is willing to show a person.
+///
+/// `sealed`, so the subclasses all live here and the analyzer can prove a
+/// `switch` over them is exhaustive. The cost is that one file grows as
+/// features arrive; the benefit is that the catalogue of what a user can be
+/// told is a single thing you can read top to bottom.
+///
+/// Nothing in here imports Firebase, Dio or any other package. Translating a
+/// `FirebaseAuthException` into one of these is the repository's job — that is
+/// what keeps those packages inside `data/`.
+sealed class AppException implements Exception {
+  const AppException(this.code, this.message);
+
+  /// Stable, machine-readable, snake_case — the same shape the API uses for
+  /// its error codes. Tests and logs switch on this; users never see it.
+  final String code;
+
+  /// What the user reads. Written as a sentence, not as a status.
+  ///
+  /// English, held here rather than marked `.hardcoded`, because `.hardcoded`
+  /// is a getter and a getter cannot run inside a `const` constructor. When
+  /// the Croatian .arb lands these become a lookup on `code`, and this field
+  /// goes away; until then this file is the one place to edit the wording.
+  final String message;
+
+  // Hand-written because Dart compares by identity by default.
+  //
+  // It is easy to think this is unnecessary: `const NetworkException()` is
+  // canonicalised, so two such expressions are literally the same object and
+  // identity already says they are equal. That holds only while BOTH sides are
+  // const. The moment one is built at runtime — which is exactly what the
+  // repository does, `UnknownAuthException(e.code)` with a code from Firebase
+  // — identity fails and the assertion reports two values whose printed form
+  // is character-for-character identical. Measured: deleting these two members
+  // fails only the runtime-constructed case in app_exception_test.dart.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AppException &&
+          runtimeType == other.runtimeType &&
+          code == other.code;
+
+  @override
+  int get hashCode => Object.hash(runtimeType, code);
+
+  /// For logs. The message is for screens, this is for whoever is debugging.
+  @override
+  String toString() => '$runtimeType($code)';
+}
+
+/// Wrong password, unknown account, or a malformed credential.
+///
+/// One exception for all three on purpose. Firebase projects created since
+/// email-enumeration protection became the default answer every one of them
+/// with `invalid-credential`, so the app cannot tell them apart — and should
+/// not: "no account with that email" tells a stranger which emails are
+/// registered.
+final class InvalidCredentialsException extends AppException {
+  const InvalidCredentialsException()
+    : super('invalid_credentials', 'Email or password is incorrect.');
+}
+
+/// The text in the email field is not an email address.
+final class InvalidEmailException extends AppException {
+  const InvalidEmailException()
+    : super('invalid_email', 'That is not a valid email address.');
+}
+
+/// The account exists but has been switched off in the Firebase console.
+final class UserDisabledException extends AppException {
+  const UserDisabledException()
+    : super('user_disabled', 'This account has been disabled.');
+}
+
+/// Firebase throttled this device after repeated failures.
+final class TooManyRequestsException extends AppException {
+  const TooManyRequestsException()
+    : super(
+        'too_many_requests',
+        'Too many attempts. Try again in a few minutes.',
+      );
+}
+
+/// The phone could not reach Firebase at all.
+final class NetworkException extends AppException {
+  const NetworkException()
+    : super('network_unavailable', 'No connection. Check your network.');
+}
+
+/// Anything the repository did not recognise.
+///
+/// Carries the original code so a log says what actually happened, while the
+/// user gets a sentence instead of `[firebase_auth/internal-error]`.
+final class UnknownAuthException extends AppException {
+  const UnknownAuthException(String originalCode)
+    : super(originalCode, 'Something went wrong. Please try again.');
+}
