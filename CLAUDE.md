@@ -45,8 +45,11 @@ dart run build_runner build --delete-conflicting-outputs   # @riverpod codegen
 flutter gen-l10n                                            # regenerate strings from .arb
 ```
 
-CI runs lint, typecheck, build and test on every PR (`.github/workflows/ci.yml`);
-`main` is protected and a red check blocks the merge. Merging into `main` deploys
+CI runs on every PR (`.github/workflows/ci.yml`), one job per package: lint,
+typecheck, build and test for `apps/api`; format, analyze and test for
+`apps/mobile`. No iOS build in CI — that needs a macOS runner and catches
+nothing the analyzer and tests do not. `main` is protected and a red check
+blocks the merge. Merging into `main` deploys
 the API to Railway, which runs the migrations before traffic moves. Never push to
 `main` directly.
 
