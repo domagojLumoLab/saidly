@@ -104,6 +104,28 @@ final class NetworkException extends AppException {
     : super('network_unavailable', 'No connection. Check your network.');
 }
 
+/// The Saidly API refused the ID token.
+///
+/// Distinct from [InvalidCredentialsException], which is about typing the
+/// wrong password. This one means a token that was valid has stopped being
+/// accepted — and by the time it is thrown, the Dio interceptor has already
+/// refreshed it once and been refused again.
+final class SessionExpiredException extends AppException {
+  const SessionExpiredException()
+    : super('session_expired', 'Your session has ended. Please sign in again.');
+}
+
+/// The Saidly API answered, but not with success.
+///
+/// Carries the API's own `error.code` so a log says which route failed and
+/// why, while the user gets a sentence. The API's `error.message` is
+/// deliberately not shown: it is written for a developer reading a 500, and
+/// some of them name tables and columns.
+final class ApiException extends AppException {
+  const ApiException(String apiCode)
+    : super(apiCode, 'Saidly is having trouble. Please try again.');
+}
+
 /// Anything the repository did not recognise.
 ///
 /// Carries the original code so a log says what actually happened, while the

@@ -5,6 +5,7 @@ import '../../../common_widgets/alert_dialogs.dart';
 import '../../../common_widgets/async_value_widget.dart';
 import '../../../localization/string_hardcoded.dart';
 import '../../../utils/async_value_ui.dart';
+import '../data/account_repository.dart';
 import '../data/auth_repository.dart';
 import '../domain/app_user.dart';
 import 'account_controller.dart';
@@ -19,6 +20,7 @@ class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
 
   static const signOutKey = Key('account-signOut');
+  static const serverUidKey = Key('account-serverUid');
 
   Future<void> _confirmAndSignOut(BuildContext context, WidgetRef ref) async {
     final confirmed = await showAlertDialog(
@@ -74,6 +76,17 @@ class AccountScreen extends ConsumerWidget {
                         style: Theme.of(context).textTheme.bodySmall,
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 8),
+                      // Spec 006's acceptance test, on screen. The uid above
+                      // is what firebase_auth handed the app; this is what the
+                      // API read out of the verified token. If they match, the
+                      // whole chain works — Firebase issued it, the
+                      // interceptor attached it, jose verified it against
+                      // Google's JWKS, and `sub` became a user.
+                      //
+                      // It is a diagnostic, and it leaves with the uid above
+                      // once 007 gives this screen something real to show.
+                      _ServerUserId(localUid: user.uid),
                       const SizedBox(height: 32),
                       if (signingOut)
                         const Center(child: CircularProgressIndicator())
@@ -88,6 +101,33 @@ class AccountScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ServerUserId extends ConsumerWidget {
+  const _ServerUserId({required this.localUid});
+
+  final String localUid;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AsyncValueWidget<String>(
+      value: ref.watch(myUserIdProvider),
+      data: (serverUid) {
+        final agrees = serverUid == localUid;
+        return Text(
+          key: AccountScreen.serverUidKey,
+          agrees
+              ? 'API matches: $serverUid'.hardcoded
+              // Named rather than hidden: a silent mismatch would leave the
+              // screen looking correct while the server believed it was
+              // talking to somebody else.
+              : 'API says a different user: $serverUid'.hardcoded,
+          style: Theme.of(context).textTheme.bodySmall,
+          textAlign: TextAlign.center,
+        );
+      },
     );
   }
 }

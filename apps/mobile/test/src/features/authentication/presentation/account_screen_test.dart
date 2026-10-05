@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:saidly/src/exceptions/app_exception.dart';
+import 'package:saidly/src/features/authentication/data/account_repository.dart';
 import 'package:saidly/src/features/authentication/data/auth_repository.dart';
 import 'package:saidly/src/features/authentication/domain/app_user.dart';
 import 'package:saidly/src/features/authentication/presentation/account_screen.dart';
@@ -22,10 +23,21 @@ void main() {
     when(repository.signOut).thenAnswer((_) async {});
   });
 
-  Future<void> pumpScreen(WidgetTester tester) async {
+  /// Always overrides myUserIdProvider. Without it the screen would reach
+  /// dioProvider and make a real HTTP call from a unit test — which is not a
+  /// test failure but a test that sometimes passes, depending on the network.
+  Future<void> pumpScreen(
+    WidgetTester tester, {
+    Future<String> Function()? serverUserId,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [authRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          myUserIdProvider.overrideWith(
+            (ref) => (serverUserId ?? () async => _user.uid)(),
+          ),
+        ],
         child: const MaterialApp(home: AccountScreen()),
       ),
     );
@@ -62,11 +74,11 @@ void main() {
       tester,
     ) async {
       // Spec 006's acceptance test compares this against the userId GET /me
-      // returns. Until that call exists, having it on screen is what makes the
-      // comparison possible at all.
+      // returns, so both end up on screen and a textContaining would match
+      // either. This asserts the local one specifically.
       await pumpScreen(tester);
 
-      expect(find.textContaining('abc123'), findsOneWidget);
+      expect(find.text('uid abc123'), findsOneWidget);
     });
 
     testWidgets('spins while the stream has emitted nothing', (tester) async {
@@ -74,13 +86,65 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [authRepositoryProvider.overrideWithValue(repository)],
+          overrides: [
+            authRepositoryProvider.overrideWithValue(repository),
+            myUserIdProvider.overrideWith((ref) async => _user.uid),
+          ],
           child: const MaterialApp(home: AccountScreen()),
         ),
       );
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+  });
+
+  group('what the API says', () {
+    testWidgets('shows the userId the server read from the token', (
+      tester,
+    ) async {
+      await pumpScreen(tester, serverUserId: () async => 'abc123');
+
+      expect(find.byKey(AccountScreen.serverUidKey), findsOneWidget);
+      expect(find.textContaining('abc123'), findsWidgets);
+    });
+
+    testWidgets('says so when the two agree — this is spec 006 passing', (
+      tester,
+    ) async {
+      await pumpScreen(tester, serverUserId: () async => _user.uid);
+
+      final text = tester
+          .widget<Text>(find.byKey(AccountScreen.serverUidKey))
+          .data;
+      expect(text, contains('matches'));
+    });
+
+    testWidgets('says so when they do not, rather than looking fine', (
+      tester,
+    ) async {
+      // A silent mismatch would be the worst outcome: the screen would look
+      // correct while the server believed it was talking to somebody else.
+      await pumpScreen(tester, serverUserId: () async => 'somebody-else');
+
+      final text = tester
+          .widget<Text>(find.byKey(AccountScreen.serverUidKey))
+          .data;
+      expect(text, isNot(contains('matches')));
+      expect(text, contains('somebody-else'));
+    });
+
+    testWidgets('a failed call reads as a sentence, not a crash', (
+      tester,
+    ) async {
+      await pumpScreen(
+        tester,
+        serverUserId: () async => throw const NetworkException(),
+      );
+
+      expect(find.text('No connection. Check your network.'), findsOneWidget);
+      // The rest of the screen is still usable.
+      expect(find.byKey(AccountScreen.signOutKey), findsOneWidget);
     });
   });
 
