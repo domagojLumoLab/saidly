@@ -1,0 +1,60 @@
+# Static analysis for apps/mobile. The Dart counterpart of the API's
+# `tsc --noEmit` plus eslint.
+#
+# Run it with `dart analyze --fatal-infos`. Both halves of that matter:
+#
+#   dart, not flutter — only `dart analyze` loads analysis server plugins, so
+#   `flutter analyze` silently skips every riverpod rule below. Measured: a
+#   runApp without a ProviderScope is a warning under `dart analyze` and
+#   invisible under `flutter analyze`.
+#
+#   --fatal-infos — lints default to info, and `dart analyze` exits 0 on info
+#   (3 on error, 2 on warning). Without the flag, `avoid_print` and most of
+#   flutter_lints would report and still pass. `flutter analyze` is fatal on
+#   infos by default, which is why dropping it needs this flag to compensate.
+
+include: package:flutter_lints/flutter.yaml
+
+# riverpod_lint runs as an analysis server plugin, not through custom_lint —
+# it dropped that dependency in 3.1.0. Declaring it here is what turns its
+# rules on. The ones this project will actually hit: missing_provider_scope,
+# notifier_extends, avoid_build_context_in_providers, avoid_public_notifier_
+# properties, avoid_ref_inside_state_dispose, provider_dependencies.
+plugins:
+  riverpod_lint: ^3.1.9
+
+analyzer:
+  # Generated and platform code. `*.g.dart` is written by build_runner; linting
+  # it reports our generator's style, which we cannot act on.
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - "**/*.g.dart"
+
+  # The same posture as `strict: true` in the API's tsconfig: refuse the places
+  # where the type system quietly gives up.
+  #   strict-casts     — no silent `dynamic` → `T`; an API response must be
+  #                      narrowed on purpose, which is exactly what a JSON map
+  #                      from Dio needs.
+  #   strict-raw-types — no bare `List`, `Map` or `Future` without arguments.
+  # strict-inference is deliberately off: it fires constantly on Flutter's own
+  # widget constructors and would train us to ignore the analyzer.
+  language:
+    strict-casts: true
+    strict-raw-types: true
+
+  errors:
+    # A dropped Future is the bug this project is most likely to write: a
+    # controller that calls an async repository and never awaits it leaves the
+    # UI showing stale state with no error anywhere. An info-level hint is too
+    # easy to scroll past, so it fails the build instead.
+    unawaited_futures: error
+
+linter:
+  rules:
+    # Not in flutter_lints, both earn their place:
+    unawaited_futures: true
+    # Keeps `dart format` from rewrapping argument lists on unrelated edits,
+    # so a diff shows what changed rather than how it rewrapped.
+    require_trailing_commas: true

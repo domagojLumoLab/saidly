@@ -1,0 +1,214 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:saidly/src/exceptions/app_exception.dart';
+import 'package:saidly/src/features/authentication/data/account_repository.dart';
+import 'package:saidly/src/features/authentication/data/auth_repository.dart';
+import 'package:saidly/src/features/authentication/domain/app_user.dart';
+import 'package:saidly/src/features/authentication/presentation/account_screen.dart';
+
+class MockAuthRepository extends Mock implements AuthRepository {}
+
+const _user = AppUser(uid: 'abc123', email: 'domagoj@lumo-lab.com');
+
+void main() {
+  late MockAuthRepository repository;
+
+  setUp(() {
+    repository = MockAuthRepository();
+    when(repository.authStateChanges).thenAnswer((_) => Stream.value(_user));
+    when(repository.signOut).thenAnswer((_) async {});
+  });
+
+  /// Always overrides myUserIdProvider. Without it the screen would reach
+  /// dioProvider and make a real HTTP call from a unit test — which is not a
+  /// test failure but a test that sometimes passes, depending on the network.
+  Future<void> pumpScreen(
+    WidgetTester tester, {
+    Future<String> Function()? serverUserId,
+  }) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          myUserIdProvider.overrideWith(
+            (ref) => (serverUserId ?? () async => _user.uid)(),
+          ),
+        ],
+        child: const MaterialApp(home: AccountScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> tapSignOut(WidgetTester tester) async {
+    await tester.tap(find.byKey(AccountScreen.signOutKey));
+    await tester.pumpAndSettle();
+  }
+
+  /// The screen's button and the dialog's confirm action both say "Sign out",
+  /// so a bare find.text matches two widgets and tap() refuses. Scoping to the
+  /// dialog is the fix — renaming one of them to keep the test simple would be
+  /// letting the test write the UI.
+  Future<void> confirm(WidgetTester tester, String action) async {
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(action),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  group('who is signed in', () {
+    testWidgets('shows the email', (tester) async {
+      await pumpScreen(tester);
+
+      expect(find.text('domagoj@lumo-lab.com'), findsOneWidget);
+    });
+
+    testWidgets('shows the uid, which is what the API will answer with', (
+      tester,
+    ) async {
+      // Spec 006's acceptance test compares this against the userId GET /me
+      // returns, so both end up on screen and a textContaining would match
+      // either. This asserts the local one specifically.
+      await pumpScreen(tester);
+
+      expect(find.text('uid abc123'), findsOneWidget);
+    });
+
+    testWidgets('spins while the stream has emitted nothing', (tester) async {
+      when(repository.authStateChanges).thenAnswer((_) => const Stream.empty());
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(repository),
+            myUserIdProvider.overrideWith((ref) async => _user.uid),
+          ],
+          child: const MaterialApp(home: AccountScreen()),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+  });
+
+  group('what the API says', () {
+    testWidgets('shows the userId the server read from the token', (
+      tester,
+    ) async {
+      await pumpScreen(tester, serverUserId: () async => 'abc123');
+
+      expect(find.byKey(AccountScreen.serverUidKey), findsOneWidget);
+      expect(find.textContaining('abc123'), findsWidgets);
+    });
+
+    testWidgets('says so when the two agree — this is spec 006 passing', (
+      tester,
+    ) async {
+      await pumpScreen(tester, serverUserId: () async => _user.uid);
+
+      final text = tester
+          .widget<Text>(find.byKey(AccountScreen.serverUidKey))
+          .data;
+      expect(text, contains('matches'));
+    });
+
+    testWidgets('says so when they do not, rather than looking fine', (
+      tester,
+    ) async {
+      // A silent mismatch would be the worst outcome: the screen would look
+      // correct while the server believed it was talking to somebody else.
+      await pumpScreen(tester, serverUserId: () async => 'somebody-else');
+
+      final text = tester
+          .widget<Text>(find.byKey(AccountScreen.serverUidKey))
+          .data;
+      expect(text, isNot(contains('matches')));
+      expect(text, contains('somebody-else'));
+    });
+
+    testWidgets('a failed call reads as a sentence, not a crash', (
+      tester,
+    ) async {
+      await pumpScreen(
+        tester,
+        serverUserId: () async => throw const NetworkException(),
+      );
+
+      expect(find.text('No connection. Check your network.'), findsOneWidget);
+      // The rest of the screen is still usable.
+      expect(find.byKey(AccountScreen.signOutKey), findsOneWidget);
+    });
+  });
+
+  group('signing out', () {
+    testWidgets('asks before doing it', (tester) async {
+      await pumpScreen(tester);
+      await tapSignOut(tester);
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      verifyNever(repository.signOut);
+    });
+
+    testWidgets('does nothing if the question is declined', (tester) async {
+      await pumpScreen(tester);
+      await tapSignOut(tester);
+
+      await confirm(tester, 'Cancel');
+
+      verifyNever(repository.signOut);
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('signs out when confirmed', (tester) async {
+      await pumpScreen(tester);
+      await tapSignOut(tester);
+
+      await confirm(tester, 'Sign out');
+
+      verify(repository.signOut).called(1);
+    });
+
+    testWidgets('shows a spinner instead of the button while it runs', (
+      tester,
+    ) async {
+      final pending = Completer<void>();
+      when(repository.signOut).thenAnswer((_) => pending.future);
+
+      await pumpScreen(tester);
+      await tapSignOut(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Sign out'),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byKey(AccountScreen.signOutKey), findsNothing);
+
+      pending.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a failure is shown as a sentence, not swallowed', (
+      tester,
+    ) async {
+      when(repository.signOut).thenThrow(const NetworkException());
+
+      await pumpScreen(tester);
+      await tapSignOut(tester);
+      await confirm(tester, 'Sign out');
+
+      expect(find.text('No connection. Check your network.'), findsOneWidget);
+    });
+  });
+}

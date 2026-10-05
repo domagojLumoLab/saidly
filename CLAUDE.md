@@ -39,15 +39,17 @@ pnpm eval           # accuracy, cost and latency over eval/cases.json
 pnpm eval --model claude-sonnet-5   # same cases, another model
 
 # apps/mobile
-flutter analyze
-dart run custom_lint                                        # riverpod_lint rules
+dart analyze --fatal-infos   # types + lints + riverpod_lint, in one command
 flutter test
 dart run build_runner build --delete-conflicting-outputs   # @riverpod codegen
 flutter gen-l10n                                            # regenerate strings from .arb
 ```
 
-CI runs lint, typecheck, build and test on every PR (`.github/workflows/ci.yml`);
-`main` is protected and a red check blocks the merge. Merging into `main` deploys
+CI runs on every PR (`.github/workflows/ci.yml`), one job per package: lint,
+typecheck, build and test for `apps/api`; format, analyze and test for
+`apps/mobile`. No iOS build in CI — that needs a macOS runner and catches
+nothing the analyzer and tests do not. `main` is protected and a red check
+blocks the merge. Merging into `main` deploys
 the API to Railway, which runs the migrations before traffic moves. Never push to
 `main` directly.
 
@@ -96,7 +98,7 @@ lib/
     │   ├── tasks/                 # today's tasks, mark done
     │   └── reminders/             # scheduling local notifications from tasks
     ├── localization/              # app_en.arb (+ app_hr.arb), string_hardcoded.dart
-    ├── routing/                   # app_router.dart, go_router_refresh_stream.dart, not_found_screen.dart
+    ├── routing/                   # app_route.dart, app_router.dart, go_router_refresh_stream.dart, not_found_screen.dart
     └── utils/                     # async_value_ui.dart, date formatters, in_memory_store.dart
 ```
 
@@ -157,9 +159,18 @@ screen. Do not create `features/home_screen/`.
 
 ### Other mobile rules
 
-- Riverpod only, with `riverpod_generator` + `riverpod_lint` (`custom_lint`
-  enabled in `analysis_options.yaml`). Do not add another state-management or
-  DI package.
+- Riverpod only, with `riverpod_generator` + `riverpod_lint`. Since
+  riverpod_lint 3.1.0 there is no `custom_lint`: it runs as an analysis server
+  plugin, declared under `plugins:` in `analysis_options.yaml`.
+  Do not add another state-management or DI package.
+- **Check the mobile package with `dart analyze --fatal-infos`, never
+  `flutter analyze`.** Only `dart analyze` loads analyzer plugins, so
+  `flutter analyze` silently skips every riverpod rule; and `dart analyze`
+  exits 0 on info-level issues, which is most of `flutter_lints`, so the flag
+  is what makes them fail. Both halves were measured — see the comment at the
+  top of `apps/mobile/analysis_options.yaml`.
+- Generated `*.g.dart` files are committed, so a fresh clone builds and CI
+  needs no codegen step. They are excluded from analysis.
 - Networking: one Dio instance from `dioProvider` with an interceptor that
   attaches the Firebase ID token (`getIdToken()`) and force-refreshes it once on
   401. Only repositories use it.
@@ -182,7 +193,7 @@ screen. Do not create `features/home_screen/`.
 3. Small diffs. One feature or fix per PR. If a change touches both `apps/api`
    and `apps/mobile`, land the API first with backward compatibility.
 4. After changing code run the relevant `lint`, `typecheck`, `test` (or
-   `flutter analyze`, `flutter test`) and report the result — do not claim green
+   `dart analyze --fatal-infos`, `flutter test`) and report the result — do not claim green
    without running.
 5. Explain trade-offs briefly in the PR description. Non-obvious decisions get a
    file in `docs/decisions/`.
@@ -192,6 +203,12 @@ screen. Do not create `features/home_screen/`.
 - Do not add dependencies without saying why in the PR; prefer the standard
   library and what is already installed.
 - Do not commit secrets, `.env` files or API keys. `.env.example` documents the keys.
+  One named exception: `apps/mobile/lib/firebase_options.dart`,
+  `ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json`
+  are committed. A Firebase client config is shipped inside every binary and
+  authorises nothing on its own — see `docs/decisions/002`. The test: a value
+  that reaches every user is public by construction; a value the server holds
+  is not.
 - Do not change the `ai_calls` schema or pricing without updating `pnpm eval`.
 - Do not rewrite or reformat files you were not asked to touch.
 - Do not introduce voice/audio features before v0.2 — text only in v0.1.

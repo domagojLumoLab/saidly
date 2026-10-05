@@ -118,3 +118,58 @@ jobs:
         run: pnpm test
         env:
           TEST_DATABASE_URL: postgres://saidly:saidly@localhost:5432/saidly_test
+
+  mobile:
+    name: apps/mobile
+    runs-on: ubuntu-latest # No iOS build here: that needs a macOS runner, which
+                           # costs ten times as much per minute. Analysis and
+                           # the widget tests run fine on Linux, and the thing
+                           # a mac would catch — signing, pods, plists — is
+                           # caught by building on a laptop before release.
+    timeout-minutes: 15
+
+    defaults:
+      run:
+        working-directory: apps/mobile
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # Pinned to an exact version for the same reason as the SDK on a laptop:
+      # a Flutter upgrade should be a commit we can see and revert, not
+      # something that happens to CI one morning. Keep this in step with
+      # `flutter --version` locally.
+      #
+      #   cache  Keeps the SDK between runs. Downloading it is ~1.5 minutes.
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.23.0
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Checks formatting without rewriting anything, so a badly formatted file
+      # fails the PR instead of being quietly fixed by whoever runs the tool
+      # next and showing up in an unrelated diff.
+      - name: Format
+        run: dart format --set-exit-if-changed lib test
+
+      # `dart analyze --fatal-infos`, NOT `flutter analyze`. Both halves matter
+      # and both were measured — see the header of apps/mobile/analysis_options.yaml.
+      # Only `dart analyze` loads analyzer plugins, so `flutter analyze` skips
+      # every riverpod_lint rule and reports a clean project; and `dart analyze`
+      # exits 0 on info-level issues, which is most of flutter_lints, so without
+      # the flag `avoid_print` would report and still pass.
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      # No build_runner step: the generated *.g.dart files are committed, so a
+      # fresh clone builds without codegen. The trade is that nothing here
+      # catches an @riverpod class edited without regenerating; that shows up
+      # as a compile error in this test step, which is good enough.
+      - name: Test
+        run: flutter test
