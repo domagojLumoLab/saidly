@@ -40,19 +40,17 @@ Future<bool?> showAlertDialog({
 
 /// Shows an error to a person.
 ///
-/// The one place that decides what an arbitrary thrown object looks like on
-/// screen. An `AppException` already carries a sentence written for a reader;
-/// anything else is one of our own bugs — a `TypeError`, a `StateError` — and
-/// its `toString()` is a developer's sentence, so it is replaced. The object
-/// itself still reaches the logs; only the screen is protected from it.
+/// What the words are is `messageForUser`'s decision, shared with
+/// AsyncValueWidget so a failure reads the same whether it arrives as a dialog
+/// or in place of a screen's contents.
 Future<void> showExceptionAlertDialog({
   required BuildContext context,
   required String title,
   required Object exception,
 }) {
-  final message = exception is AppException
-      ? exception.message
-      : 'Something went wrong. Please try again.'.hardcoded;
-
-  return showAlertDialog(context: context, title: title, content: message);
+  return showAlertDialog(
+    context: context,
+    title: title,
+    content: messageForUser(exception),
+  );
 }

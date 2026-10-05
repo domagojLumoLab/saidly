@@ -89,4 +89,33 @@ void main() {
       );
     });
   });
+
+  messageForUserTests();
+}
+
+// Appended: the shared helper both the dialog and AsyncValueWidget use, so
+// the two cannot drift into showing different words for the same failure.
+void messageForUserTests() {
+  group('messageForUser', () {
+    test('an AppException speaks for itself', () {
+      expect(
+        messageForUser(const NetworkException()),
+        'No connection. Check your network.',
+      );
+    });
+
+    test('anything else gets a sentence instead of its toString', () {
+      final message = messageForUser(StateError('subscription cancelled'));
+
+      expect(message, isNot(contains('subscription')));
+      expect(message, isNot(contains('Instance of')));
+      expect(message, isNotEmpty);
+    });
+
+    test('even a bare String is replaced', () {
+      // `throw 'something'` is legal Dart and does happen in other people's
+      // packages. It must not reach the screen verbatim.
+      expect(messageForUser('raw internal detail'), isNot(contains('raw')));
+    });
+  });
 }

@@ -1,3 +1,20 @@
+import '../localization/string_hardcoded.dart';
+
+/// The sentence to put in front of a person for anything that was thrown.
+///
+/// One function rather than a ternary repeated at each call site, so the alert
+/// dialog and AsyncValueWidget cannot drift into different wording for the
+/// same failure.
+///
+/// Takes `Object` because that is what `AsyncValue.error` and a `catch` hand
+/// you. An AppException already carries a sentence written for a reader;
+/// anything else is one of our own bugs — a TypeError, a StateError, or a bare
+/// `throw 'text'` from somebody's package — whose toString is a developer's
+/// sentence. It stays in the logs; the screen gets this instead.
+String messageForUser(Object error) => error is AppException
+    ? error.message
+    : 'Something went wrong. Please try again.'.hardcoded;
+
 /// Every error this app is willing to show a person.
 ///
 /// `sealed`, so the subclasses all live here and the analyzer can prove a
