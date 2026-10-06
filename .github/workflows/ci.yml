@@ -119,8 +119,8 @@ jobs:
         env:
           TEST_DATABASE_URL: postgres://saidly:saidly@localhost:5432/saidly_test
 
-  mobile:
-    name: apps/mobile
+  flutter:
+    name: apps/flutter
     runs-on: ubuntu-latest # No iOS build here: that needs a macOS runner, which
                            # costs ten times as much per minute. Analysis and
                            # the widget tests run fine on Linux, and the thing
@@ -130,7 +130,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: apps/mobile
+        working-directory: apps/flutter
 
     steps:
       - name: Check out the repository
@@ -159,7 +159,7 @@ jobs:
         run: dart format --set-exit-if-changed lib test
 
       # `dart analyze --fatal-infos`, NOT `flutter analyze`. Both halves matter
-      # and both were measured — see the header of apps/mobile/analysis_options.yaml.
+      # and both were measured — see the header of apps/flutter/analysis_options.yaml.
       # Only `dart analyze` loads analyzer plugins, so `flutter analyze` skips
       # every riverpod_lint rule and reports a clean project; and `dart analyze`
       # exits 0 on info-level issues, which is most of flutter_lints, so without

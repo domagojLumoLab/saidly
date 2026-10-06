@@ -19,7 +19,7 @@ Every feature must be finishable in a 2-hour session or split into pieces that a
 apps/api      Hono + TypeScript (ESM) · Drizzle ORM · Postgres 16 · Vitest
 apps/api/eval Parser cases (cases.json) and runner — inside the package because
               it runs the API's code and needs its dependencies
-apps/mobile   Flutter 3.x · Riverpod 3 (codegen) · go_router · Dio · firebase_auth · flutter_local_notifications
+apps/flutter  Flutter 3.x · Riverpod 3 (codegen) · go_router · Dio · firebase_auth · flutter_local_notifications
 docs/         Architecture, decisions (docs/decisions/NNN-title.md), provider notes
 ```
 
@@ -38,7 +38,7 @@ pnpm db:migrate     # apply migrations
 pnpm eval           # accuracy, cost and latency over eval/cases.json
 pnpm eval --model claude-sonnet-5   # same cases, another model
 
-# apps/mobile
+# apps/flutter
 dart analyze --fatal-infos   # types + lints + riverpod_lint, in one command
 flutter test
 dart run build_runner build --delete-conflicting-outputs   # @riverpod codegen
@@ -47,7 +47,7 @@ flutter gen-l10n                                            # regenerate strings
 
 CI runs on every PR (`.github/workflows/ci.yml`), one job per package: lint,
 typecheck, build and test for `apps/api`; format, analyze and test for
-`apps/mobile`. No iOS build in CI — that needs a macOS runner and catches
+`apps/flutter`. No iOS build in CI — that needs a macOS runner and catches
 nothing the analyzer and tests do not. `main` is protected and a red check
 blocks the merge. Merging into `main` deploys
 the API to Railway, which runs the migrations before traffic moves. Never push to
@@ -168,7 +168,7 @@ screen. Do not create `features/home_screen/`.
   `flutter analyze` silently skips every riverpod rule; and `dart analyze`
   exits 0 on info-level issues, which is most of `flutter_lints`, so the flag
   is what makes them fail. Both halves were measured — see the comment at the
-  top of `apps/mobile/analysis_options.yaml`.
+  top of `apps/flutter/analysis_options.yaml`.
 - Generated `*.g.dart` files are committed, so a fresh clone builds and CI
   needs no codegen step. They are excluded from analysis.
 - Networking: one Dio instance from `dioProvider` with an interceptor that
@@ -191,7 +191,7 @@ screen. Do not create `features/home_screen/`.
 2. Tests first when the behaviour is clear: write the failing Vitest/Flutter test,
    show it, then implement.
 3. Small diffs. One feature or fix per PR. If a change touches both `apps/api`
-   and `apps/mobile`, land the API first with backward compatibility.
+   and `apps/flutter`, land the API first with backward compatibility.
 4. After changing code run the relevant `lint`, `typecheck`, `test` (or
    `dart analyze --fatal-infos`, `flutter test`) and report the result — do not claim green
    without running.
@@ -203,7 +203,7 @@ screen. Do not create `features/home_screen/`.
 - Do not add dependencies without saying why in the PR; prefer the standard
   library and what is already installed.
 - Do not commit secrets, `.env` files or API keys. `.env.example` documents the keys.
-  One named exception: `apps/mobile/lib/firebase_options.dart`,
+  One named exception: `apps/flutter/lib/firebase_options.dart`,
   `ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json`
   are committed. A Firebase client config is shipped inside every binary and
   authorises nothing on its own — see `docs/decisions/002`. The test: a value

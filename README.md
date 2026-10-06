@@ -49,7 +49,7 @@ saidly/
 │   ├── api/        Hono + TypeScript + Drizzle + Postgres   (Node 22)
 │   │   └── eval/   English and Croatian parser cases, run by `pnpm eval`
 │   ├── ios/        Native iOS app — Swift 6, SwiftUI       (Xcode 26, iOS 26+)
-│   └── mobile/     Flutter app — paused                    (Flutter 3.x)
+│   └── flutter/    Flutter app — paused                    (Flutter 3.x)
 ├── docs/           Architecture notes, decisions, provider comparison
 ├── CLAUDE.md       Working rules for AI coding agents
 └── README.md
@@ -70,7 +70,7 @@ pnpm db:migrate
 pnpm dev                      # http://localhost:3000/health and /ready
 
 # Mobile
-cd apps/mobile
+cd apps/flutter
 cp .env.example .env          # API_BASE_URL (localhost:3000 or the deployed URL
                               # below); Firebase config via flutterfire configure
 flutter pub get
