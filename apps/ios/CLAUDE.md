@@ -87,8 +87,21 @@ Saidly (app) ──► Features ──► Domain ◄── Networking, Auth, Rem
   low-level errors (`URLError`, Firebase `AuthErrorCode`, HTTP status) into
   `AppError`. Nothing else imports Firebase or touches `URLSession`.
 - **Feature modules** import Domain only. They never see a concrete repository.
+  They contain views, view models and — when needed — services (see below).
 - **The app target** builds `AppDependencies` once in `SaidlyApp` and hands each
   feature what it needs. It contains no business logic.
+
+### Services — only when an action spans repositories
+
+- A service (`ConfirmPlanService`) exists only when one user action needs two
+  or more repositories — confirming a plan saves it through `PlanRepository`
+  and then schedules reminders through `ReminderScheduler`.
+- It lives in the feature module that owns the action, depends on Domain
+  protocols only, and is injected into the view model like a repository.
+- It holds no UI state and is not `@MainActor`; it is a `Sendable` struct or an
+  `actor` if it must hold state.
+- If a service only forwards a call to one repository, delete it and let the
+  view model call the repository directly. No use-case class per action.
 
 ### Presentation
 
