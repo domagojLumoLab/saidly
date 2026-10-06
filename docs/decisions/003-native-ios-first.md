@@ -21,7 +21,7 @@ iOS 26 minimum) and pause the Flutter client without deleting it.
 
 - The API does not change. The iOS app is registered as a second iOS app in
   the same Firebase project, so ID tokens carry the same `aud` and `iss`.
-- The native app uses its own bundle id (`com.lumolab.saidly`); the Flutter
+- The native app uses its own bundle id (`com.lumolab.saidly.ios`); the Flutter
   app keeps `com.lumolab.saidlyapp`, so both can be installed side by side.
 - iOS 26 minimum because Foundation Models, SpeechAnalyzer and AlarmKit
   require it, and it removes `#available` branching from a new codebase.

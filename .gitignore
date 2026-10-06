@@ -27,6 +27,15 @@ apps/flutter/**/*.keystore
 # inside every binary, so keeping it out of git hides it from review without
 # hiding it from anyone who installs the app, and breaks a fresh clone.
 
+# --- Native iOS (apps/ios) ---
+apps/ios/**/xcuserdata/
+apps/ios/**/*.xcuserstate
+apps/ios/DerivedData/
+apps/ios/build/
+apps/ios/Packages/**/.build/
+apps/ios/Packages/**/.swiftpm/
+# Package.resolved IS committed: it pins exact dependency versions for the app.
+
 # --- Editors / OS ---
 .idea/
 .vscode/
