@@ -1,14 +1,13 @@
-//
-//  SaidlyApp.swift
-//  Saidly
-//
-//  Created by Domagoj Kolaric on 06.10.2026..
-//
-
 import SwiftUI
+import Auth
 
 @main
 struct SaidlyApp: App {
+    
+    init() {
+        FirebaseSetup.configure()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

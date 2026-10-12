@@ -15,11 +15,24 @@ let package = Package(
         .library(
             name: "Domain",
             targets: ["Domain"]
-        )
+        ),
+        .library(
+            name: "Auth",
+            targets: ["Auth"]
+        ),
     ],
+    dependencies: [.package(url: "https://github.com/firebase/firebase-ios-sdk", from: "13.0.1")],
     targets: [
         .target(
             name: "Domain",
+            swiftSettings: swiftSettings
+        ),
+        .target(
+            name: "Auth",
+            dependencies: [
+                "Domain",
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+            ],
             swiftSettings: swiftSettings
         ),
         .testTarget(

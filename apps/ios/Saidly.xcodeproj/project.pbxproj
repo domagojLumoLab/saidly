@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		FFC00C0630752AC40054003D /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = FFC00C0530752AC40054003D /* Domain */; };
 		FFF789B0307D08580019330E /* Saidly.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = FFF789AF307D08580019330E /* Saidly.xctestplan */; };
+		FFF789B4307D163B0019330E /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = FFF789B3307D163B0019330E /* Auth */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FFF789B4307D163B0019330E /* Auth in Frameworks */,
 				FFC00C0630752AC40054003D /* Domain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -117,6 +119,7 @@
 			name = Saidly;
 			packageProductDependencies = (
 				FFC00C0530752AC40054003D /* Domain */,
+				FFF789B3307D163B0019330E /* Auth */,
 			);
 			productName = Saidly;
 			productReference = FFC2D1F5307518240069DA43 /* Saidly.app */;
@@ -499,6 +502,10 @@
 		FFC00C0530752AC40054003D /* Domain */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Domain;
+		};
+		FFF789B3307D163B0019330E /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Auth;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
