@@ -1,19 +1,15 @@
-//
-//  ContentView.swift
-//  Saidly
-//
-//  Created by Domagoj Kolaric on 06.10.2026..
-//
-
+import Domain
 import SwiftUI
 
 struct ContentView: View {
+    let appUser = AppUser(id: "Ab12#321jdawk", email: "test@saidly.app")
+
     var body: some View {
         VStack {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text(appUser.email ?? "No email")
         }
         .padding()
     }

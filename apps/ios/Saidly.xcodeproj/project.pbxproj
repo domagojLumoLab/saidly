@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FFC00C0630752AC40054003D /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = FFC00C0530752AC40054003D /* Domain */; };
+		FFF789B0307D08580019330E /* Saidly.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = FFF789AF307D08580019330E /* Saidly.xctestplan */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		FFC2D203307518260069DA43 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -19,6 +24,8 @@
 /* Begin PBXFileReference section */
 		FFC2D1F5307518240069DA43 /* Saidly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Saidly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFC2D202307518260069DA43 /* SaidlyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SaidlyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FFC2D243307520200069DA43 /* SaidlyKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = SaidlyKit; sourceTree = "<group>"; };
+		FFF789AF307D08580019330E /* Saidly.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Saidly.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -39,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FFC00C0630752AC40054003D /* Domain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -52,11 +60,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FFC00C0430752AC40054003D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		FFC2D1EC307518240069DA43 = {
 			isa = PBXGroup;
 			children = (
+				FFF789AF307D08580019330E /* Saidly.xctestplan */,
+				FFC2D244307520200069DA43 /* Packages */,
 				FFC2D1F7307518240069DA43 /* Saidly */,
 				FFC2D205307518260069DA43 /* SaidlyTests */,
+				FFC00C0430752AC40054003D /* Frameworks */,
 				FFC2D1F6307518240069DA43 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,6 +86,14 @@
 				FFC2D202307518260069DA43 /* SaidlyTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FFC2D244307520200069DA43 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				FFC2D243307520200069DA43 /* SaidlyKit */,
+			);
+			path = Packages;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -90,6 +116,7 @@
 			);
 			name = Saidly;
 			packageProductDependencies = (
+				FFC00C0530752AC40054003D /* Domain */,
 			);
 			productName = Saidly;
 			productReference = FFC2D1F5307518240069DA43 /* Saidly.app */;
@@ -162,6 +189,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FFF789B0307D08580019330E /* Saidly.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -466,6 +494,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FFC00C0530752AC40054003D /* Domain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Domain;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = FFC2D1ED307518240069DA43 /* Project object */;
 }

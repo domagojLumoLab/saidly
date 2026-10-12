@@ -39,6 +39,12 @@ swift format lint --strict --recursive Saidly Packages   # formatting and lints
 swift format --in-place --recursive Saidly Packages      # fix formatting
 ```
 
+Formatting rules live in `apps/ios/.swift-format` (4-space indent, 100 columns,
+matching Xcode's defaults). `swift format` and Xcode's *Editor → Structure →
+Format File with 'swift-format'* both find it by walking up from each file, so
+it covers the app target and every package. Everything not set there uses
+swift-format's defaults.
+
 ## Layout
 
 ```

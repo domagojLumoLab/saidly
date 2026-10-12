@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "D2108192-9DE6-486D-8CF3-776E8018DB6D",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/SaidlyKit",
+        "identifier" : "DomainTests",
+        "name" : "DomainTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Saidly.xcodeproj",
+        "identifier" : "FFC2D201307518260069DA43",
+        "name" : "SaidlyTests"
+      }
+    }
+  ],
+  "version" : 1
+}
