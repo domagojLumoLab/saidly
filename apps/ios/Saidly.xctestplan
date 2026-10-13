@@ -25,6 +25,13 @@
         "identifier" : "FFC2D201307518260069DA43",
         "name" : "SaidlyTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/SaidlyKit",
+        "identifier" : "AuthTests",
+        "name" : "AuthTests"
+      }
     }
   ],
   "version" : 1

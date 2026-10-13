@@ -40,5 +40,11 @@ let package = Package(
             dependencies: ["Domain"],
             swiftSettings: swiftSettings
         ),
+        .testTarget(
+            name: "AuthTests",
+            dependencies: [
+                "Auth", "Domain", .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+            ],
+            swiftSettings: swiftSettings),
     ]
 )
