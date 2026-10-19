@@ -20,6 +20,10 @@ let package = Package(
             name: "Auth",
             targets: ["Auth"]
         ),
+        .library(
+            name: "AuthFeature",
+            targets: ["AuthFeature"]
+        ),
     ],
     dependencies: [.package(url: "https://github.com/firebase/firebase-ios-sdk", from: "13.0.1")],
     targets: [
@@ -35,6 +39,13 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
+        .target(
+            name: "AuthFeature",
+            dependencies: [
+                "Domain"
+            ],
+            swiftSettings: swiftSettings
+        ),
         .testTarget(
             name: "DomainTests",
             dependencies: ["Domain"],
@@ -43,8 +54,17 @@ let package = Package(
         .testTarget(
             name: "AuthTests",
             dependencies: [
-                "Auth", "Domain", .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+                "Auth", "Domain",
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
             ],
-            swiftSettings: swiftSettings),
+            swiftSettings: swiftSettings
+        ),
+        .testTarget(
+            name: "AuthFeatureTests",
+            dependencies: [
+                "AuthFeature", "Domain",
+            ],
+            swiftSettings: swiftSettings
+        ),
     ]
 )

@@ -32,6 +32,13 @@
         "identifier" : "AuthTests",
         "name" : "AuthTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/SaidlyKit",
+        "identifier" : "AuthFeatureTests",
+        "name" : "AuthFeatureTests"
+      }
     }
   ],
   "version" : 1
