@@ -6,6 +6,7 @@ import PackageDescription
 let swiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
     .enableUpcomingFeature("InferIsolatedConformances"),
+    .define("DEBUG", .when(configuration: .debug))
 ]
 
 let package = Package(
