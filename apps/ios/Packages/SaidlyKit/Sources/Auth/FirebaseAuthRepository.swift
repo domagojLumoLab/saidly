@@ -6,7 +6,7 @@ public final class FirebaseAuthRepository: AuthRepository {
 
     public init() {}
 
-    public var currentUser: Domain.AppUser? {
+    public var currentUser: AppUser? {
         Auth.auth().currentUser.map { AppUser(firebaseUser: $0) }
     }
 
@@ -52,6 +52,18 @@ public final class FirebaseAuthRepository: AuthRepository {
             return .networkUnavailable
         default:
             return .unknown
+        }
+    }
+}
+
+extension FirebaseAuthRepository: TokenProvider {
+    public func idToken(forceRefresh: Bool) async throws(AppError) -> String {
+        guard let user = Auth.auth().currentUser else { throw .sessionExpired }
+
+        do {
+            return try await user.idTokenForcingRefresh(forceRefresh)
+        } catch {
+            throw Self.toAppError(error)
         }
     }
 }

@@ -3,6 +3,8 @@ public enum AppError: Error, Sendable, Equatable {
     case invalidEmail
     case networkUnavailable
     case unknown
+    case sessionExpired
+    case server
     
     public var message: String {
         switch self {
@@ -14,6 +16,10 @@ public enum AppError: Error, Sendable, Equatable {
             "No connection. Check your network."
         case .unknown:
             "Something went wrong. Please try again."
+        case .sessionExpired:
+            "Your session has expired. Please sign in again."
+        case .server:
+            "The server is having trouble. Please try again later."
         }
     }
 }
