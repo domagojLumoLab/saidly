@@ -50,6 +50,8 @@ public final class FirebaseAuthRepository: AuthRepository {
             return .invalidEmail
         case .networkError:
             return .networkUnavailable
+        case .userTokenExpired, .invalidUserToken, .userDisabled, .requiresRecentLogin:
+            return .sessionExpired
         default:
             return .unknown
         }
@@ -59,7 +61,6 @@ public final class FirebaseAuthRepository: AuthRepository {
 extension FirebaseAuthRepository: TokenProvider {
     public func idToken(forceRefresh: Bool) async throws(AppError) -> String {
         guard let user = Auth.auth().currentUser else { throw .sessionExpired }
-
         do {
             return try await user.idTokenForcingRefresh(forceRefresh)
         } catch {

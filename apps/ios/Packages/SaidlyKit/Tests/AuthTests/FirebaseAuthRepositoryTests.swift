@@ -13,7 +13,11 @@ import Testing
         (AuthErrorCode.invalidCredential.rawValue, AppError.invalidCredentials),
         (AuthErrorCode.invalidEmail.rawValue, AppError.invalidEmail),
         (AuthErrorCode.networkError.rawValue, AppError.networkUnavailable),
-        (AuthErrorCode.userDisabled.rawValue, AppError.unknown),
+        (AuthErrorCode.userDisabled.rawValue, AppError.sessionExpired),
+        (AuthErrorCode.userTokenExpired.rawValue, AppError.sessionExpired),
+        (AuthErrorCode.invalidUserToken.rawValue, AppError.sessionExpired),
+        (AuthErrorCode.requiresRecentLogin.rawValue, AppError.sessionExpired),
+        (AuthErrorCode.tooManyRequests.rawValue, AppError.unknown),
     ])
     func firebaseErrorMapsToAppError(code: Int, expected: AppError) {
         let error = NSError(domain: AuthErrorDomain, code: code)
