@@ -1,5 +1,5 @@
-import SwiftUI
 import Domain
+import SwiftUI
 
 public struct SignInView: View {
     @Bindable var viewModel: SignInViewModel
@@ -49,7 +49,8 @@ public struct SignInView: View {
 }
 
 #Preview("Failed") {
-    let vm = SignInViewModel(authRepository: PreviewAuthRepository(behavior: .fails(.invalidCredentials)))
+    let vm = SignInViewModel(
+        authRepository: PreviewAuthRepository(behavior: .fails(.invalidCredentials)))
     vm.email = "test@test.com"
     vm.password = "wrong"
     return SignInView(viewModel: vm)

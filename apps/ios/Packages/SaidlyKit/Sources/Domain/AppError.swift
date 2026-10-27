@@ -5,7 +5,7 @@ public enum AppError: Error, Sendable, Equatable {
     case unknown
     case sessionExpired
     case server
-    
+
     public var message: String {
         switch self {
         case .invalidCredentials:

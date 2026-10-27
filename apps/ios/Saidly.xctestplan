@@ -39,6 +39,13 @@
         "identifier" : "AuthFeatureTests",
         "name" : "AuthFeatureTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/SaidlyKit",
+        "identifier" : "NetworkingTests",
+        "name" : "NetworkingTests"
+      }
     }
   ],
   "version" : 1

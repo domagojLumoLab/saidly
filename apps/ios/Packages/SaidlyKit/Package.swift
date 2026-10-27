@@ -25,6 +25,10 @@ let package = Package(
             name: "AuthFeature",
             targets: ["AuthFeature"]
         ),
+        .library(
+            name: "Networking",
+            targets: ["Networking"]
+        ),
     ],
     dependencies: [.package(url: "https://github.com/firebase/firebase-ios-sdk", from: "13.0.1")],
     targets: [
@@ -47,6 +51,13 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
+        .target(
+            name: "Networking",
+            dependencies: [
+                "Domain"
+            ],
+            swiftSettings: swiftSettings
+        ),
         .testTarget(
             name: "DomainTests",
             dependencies: ["Domain"],
@@ -64,6 +75,13 @@ let package = Package(
             name: "AuthFeatureTests",
             dependencies: [
                 "AuthFeature", "Domain",
+            ],
+            swiftSettings: swiftSettings
+        ),
+        .testTarget(
+            name: "NetworkingTests",
+            dependencies: [
+                "Networking", "Domain"
             ],
             swiftSettings: swiftSettings
         ),
