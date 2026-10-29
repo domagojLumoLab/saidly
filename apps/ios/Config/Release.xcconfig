@@ -1,0 +1,7 @@
+// Release build settings for the Saidly app target.
+// `//` starts a comment in .xcconfig, so the scheme separator is split with $().
+
+API_BASE_URL = https:/$()/divine-magic-production-a0d3.up.railway.app
+
+// Merged with the generated Info.plist (GENERATE_INFOPLIST_FILE stays YES).
+INFOPLIST_FILE = Config/Info.plist
