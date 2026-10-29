@@ -34,6 +34,7 @@ apps/ios/DerivedData/
 apps/ios/build/
 apps/ios/Packages/**/.build/
 apps/ios/Packages/**/.swiftpm/
+apps/ios/SourcePackages/
 # Package.resolved IS committed: it pins exact dependency versions for the app.
 
 # --- Editors / OS ---
