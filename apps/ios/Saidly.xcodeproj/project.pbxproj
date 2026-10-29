@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		FF2296EA3086486A00ACDB71 /* AuthFeature in Frameworks */ = {isa = PBXBuildFile; productRef = FF2296E93086486A00ACDB71 /* AuthFeature */; };
+		FF8C35FD30921E7800FAA82D /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = FF8C35FC30921E7800FAA82D /* Networking */; };
 		FFC00C0630752AC40054003D /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = FFC00C0530752AC40054003D /* Domain */; };
 		FFF789B0307D08580019330E /* Saidly.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = FFF789AF307D08580019330E /* Saidly.xctestplan */; };
 		FFF789B4307D163B0019330E /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = FFF789B3307D163B0019330E /* Auth */; };
@@ -24,6 +25,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		FF8C35F830921B5B00FAA82D /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		FF8C35F930921B5B00FAA82D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FF8C35FA30921B5B00FAA82D /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		FFC2D1F5307518240069DA43 /* Saidly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Saidly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFC2D202307518260069DA43 /* SaidlyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SaidlyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFC2D243307520200069DA43 /* SaidlyKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = SaidlyKit; sourceTree = "<group>"; };
@@ -50,6 +54,7 @@
 			files = (
 				FF2296EA3086486A00ACDB71 /* AuthFeature in Frameworks */,
 				FFF789B4307D163B0019330E /* Auth in Frameworks */,
+				FF8C35FD30921E7800FAA82D /* Networking in Frameworks */,
 				FFC00C0630752AC40054003D /* Domain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -64,6 +69,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FF8C35FB30921B5B00FAA82D /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				FF8C35F830921B5B00FAA82D /* Debug.xcconfig */,
+				FF8C35F930921B5B00FAA82D /* Info.plist */,
+				FF8C35FA30921B5B00FAA82D /* Release.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
 		FFC00C0430752AC40054003D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -74,6 +89,7 @@
 		FFC2D1EC307518240069DA43 = {
 			isa = PBXGroup;
 			children = (
+				FF8C35FB30921B5B00FAA82D /* Config */,
 				FFF789AF307D08580019330E /* Saidly.xctestplan */,
 				FFC2D244307520200069DA43 /* Packages */,
 				FFC2D1F7307518240069DA43 /* Saidly */,
@@ -123,6 +139,7 @@
 				FFC00C0530752AC40054003D /* Domain */,
 				FFF789B3307D163B0019330E /* Auth */,
 				FF2296E93086486A00ACDB71 /* AuthFeature */,
+				FF8C35FC30921E7800FAA82D /* Networking */,
 			);
 			productName = Saidly;
 			productReference = FFC2D1F5307518240069DA43 /* Saidly.app */;
@@ -287,6 +304,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -345,6 +363,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -357,6 +376,7 @@
 		};
 		FFC2D217307518260069DA43 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FF8C35F830921B5B00FAA82D /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -392,6 +412,7 @@
 		};
 		FFC2D218307518260069DA43 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FF8C35FA30921B5B00FAA82D /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -505,6 +526,10 @@
 		FF2296E93086486A00ACDB71 /* AuthFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AuthFeature;
+		};
+		FF8C35FC30921E7800FAA82D /* Networking */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Networking;
 		};
 		FFC00C0530752AC40054003D /* Domain */ = {
 			isa = XCSwiftPackageProductDependency;

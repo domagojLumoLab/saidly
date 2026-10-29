@@ -1,0 +1,8 @@
+// Debug build settings for the Saidly app target.
+// `//` starts a comment in .xcconfig, so the scheme separator is split with $().
+
+// Local API (apps/api: pnpm dev). Railway trial ended; Release still points there.
+API_BASE_URL = http:/$()/localhost:3000
+
+// Merged with the generated Info.plist (GENERATE_INFOPLIST_FILE stays YES).
+INFOPLIST_FILE = Config/Info.plist

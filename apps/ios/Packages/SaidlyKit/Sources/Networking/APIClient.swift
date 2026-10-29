@@ -6,7 +6,10 @@ public final class APIClient: Sendable {
     private let tokenProvider: any TokenProvider
     private let transport: any HTTPTransport
 
-    public init(baseURL: URL, tokenProvider: any TokenProvider, transport: any HTTPTransport = URLSession.shared) {
+    public init(
+        baseURL: URL, tokenProvider: any TokenProvider,
+        transport: any HTTPTransport = URLSession.shared
+    ) {
         self.baseURL = baseURL
         self.tokenProvider = tokenProvider
         self.transport = transport
@@ -21,7 +24,7 @@ public final class APIClient: Sendable {
                 throw .sessionExpired
             }
         }
-        
+
         switch response.statusCode {
         case 200..<300:
             do {
