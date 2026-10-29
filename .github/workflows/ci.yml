@@ -30,8 +30,49 @@ permissions:
   contents: read
 
 jobs:
+  # --- Which apps did this change touch? ----------------------------------------
+  # A monorepo PR usually touches one app. Without this, a one-line Swift fix
+  # would also run the API suite, and a backend fix would boot a macOS runner,
+  # which costs ten times a Linux minute. This cheap Linux job looks at the
+  # changed paths and every other job reads its answer through `needs`.
+  #
+  # A job skipped by its `if:` reports as "skipped", which GitHub counts as
+  # passing, so a required check on a skipped app does not block the merge.
+  # Each filter includes the workflow file itself: changing CI runs everything.
+  changes:
+    name: changed apps
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read # lets the action list a PR's files through the API
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      flutter: ${{ steps.filter.outputs.flutter }}
+      ios: ${{ steps.filter.outputs.ios }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - '.github/workflows/ci.yml'
+            flutter:
+              - 'apps/flutter/**'
+              - '.github/workflows/ci.yml'
+            ios:
+              - 'apps/ios/**'
+              - '.github/workflows/ci.yml'
+
   api:
     name: apps/api
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest # Linux runners are the cheapest and fastest.
     timeout-minutes: 10 # Kill a hung job instead of burning an hour.
 
@@ -121,6 +162,8 @@ jobs:
 
   flutter:
     name: apps/flutter
+    needs: changes
+    if: needs.changes.outputs.flutter == 'true'
     runs-on: ubuntu-latest # No iOS build here: that needs a macOS runner, which
                            # costs ten times as much per minute. Analysis and
                            # the widget tests run fine on Linux, and the thing
@@ -173,3 +216,65 @@ jobs:
       # as a compile error in this test step, which is good enough.
       - name: Test
         run: flutter test
+
+  ios:
+    name: apps/ios
+    needs: changes
+    if: needs.changes.outputs.ios == 'true'
+    # macOS is the only place Xcode runs. iOS 26 SDK needs Xcode 26, which ships
+    # on the macos-26 image. Billed at ten times a Linux minute on private
+    # repositories — the `changes` job above is what keeps that bill small.
+    runs-on: macos-26
+    # A cold run resolves and compiles Firebase from source, which is most of
+    # the time. Cached runs are much shorter.
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: apps/ios
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # The image's default Xcode, printed so a failure can be matched against
+      # the version on a laptop. TODO: pin it with `xcode-select` to the same
+      # Xcode used locally once the two drift.
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      # Swift packages (Firebase and its dependencies) are cloned into
+      # apps/ios/SourcePackages by the -clonedSourcePackagesDirPath flag below,
+      # instead of a random DerivedData folder, so they can be cached. The key is
+      # Package.resolved: new dependency versions, new cache.
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: apps/ios/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('apps/ios/Saidly.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      # Same rules as on a laptop: swift-format reads apps/ios/.swift-format.
+      # --strict turns warnings (long lines, trailing whitespace) into a failed
+      # step, the way `dart format --set-exit-if-changed` does for Flutter.
+      # Runs first because it takes seconds and the build takes minutes.
+      - name: Lint
+        run: >
+          swift format lint --strict --recursive --parallel
+          Saidly Packages/SaidlyKit/Sources Packages/SaidlyKit/Tests
+
+      # Runs Saidly.xctestplan: the app's tests and every SaidlyKit test target.
+      # Simulator builds need no signing, so it is switched off and no
+      # certificate lives in CI. The two -skip flags accept package plugins and
+      # macros without the interactive "Trust & Enable" prompt Xcode shows.
+      - name: Test
+        run: >
+          xcodebuild test
+          -project Saidly.xcodeproj
+          -scheme Saidly
+          -testPlan Saidly
+          -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest'
+          -clonedSourcePackagesDirPath SourcePackages
+          -skipPackagePluginValidation
+          -skipMacroValidation
+          CODE_SIGNING_ALLOWED=NO

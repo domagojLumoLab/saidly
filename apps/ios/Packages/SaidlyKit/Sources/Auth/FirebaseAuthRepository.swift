@@ -12,7 +12,9 @@ public final class FirebaseAuthRepository: AuthRepository {
 
     public func authStateChanges() -> AsyncStream<AppUser?> {
         AsyncStream { continuation in
-            // handle is an immutable, opaque token used only to remove the listener; Firebase Auth is thread-safe, so sharing it with the @Sendable onTermination is safe.
+            // handle is an immutable, opaque token used
+            // only to remove the listener; Firebase Auth is thread-safe,
+            // so sharing it with the @Sendable onTermination is safe.
             nonisolated(unsafe) let handle = Auth.auth().addStateDidChangeListener { _, user in
                 continuation.yield(user.map { AppUser(firebaseUser: $0) })
             }

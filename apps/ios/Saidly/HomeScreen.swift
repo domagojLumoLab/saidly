@@ -1,5 +1,5 @@
-import SwiftUI
 import Domain
+import SwiftUI
 
 struct HomeScreen: View {
     let user: AppUser
