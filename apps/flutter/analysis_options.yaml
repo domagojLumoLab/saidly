@@ -1,4 +1,4 @@
-# Static analysis for apps/mobile. The Dart counterpart of the API's
+# Static analysis for apps/flutter. The Dart counterpart of the API's
 # `tsc --noEmit` plus eslint.
 #
 # Run it with `dart analyze --fatal-infos`. Both halves of that matter:

@@ -9,19 +9,19 @@ coverage/
 .pnpm-store/
 
 # --- Flutter / Dart / mobile ---
-apps/mobile/.dart_tool/
-apps/mobile/.packages
-apps/mobile/build/
-apps/mobile/.flutter-plugins
-apps/mobile/.flutter-plugins-dependencies
-apps/mobile/ios/Pods/
-apps/mobile/ios/.symlinks/
-apps/mobile/ios/Flutter/ephemeral/
-apps/mobile/android/.gradle/
-apps/mobile/android/local.properties
-apps/mobile/android/key.properties
-apps/mobile/**/*.jks
-apps/mobile/**/*.keystore
+apps/flutter/.dart_tool/
+apps/flutter/.packages
+apps/flutter/build/
+apps/flutter/.flutter-plugins
+apps/flutter/.flutter-plugins-dependencies
+apps/flutter/ios/Pods/
+apps/flutter/ios/.symlinks/
+apps/flutter/ios/Flutter/ephemeral/
+apps/flutter/android/.gradle/
+apps/flutter/android/local.properties
+apps/flutter/android/key.properties
+apps/flutter/**/*.jks
+apps/flutter/**/*.keystore
 
 # The Firebase client config is NOT ignored — see docs/decisions/002. It ships
 # inside every binary, so keeping it out of git hides it from review without

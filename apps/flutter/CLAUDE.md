@@ -1,0 +1,124 @@
+# apps/flutter — working rules for the Flutter client
+
+> **Status: paused** since 2026-10-06 (`docs/decisions/003-native-ios-first.md`).
+> The shell from #16 works and stays in CI. Do not add features here until the
+> decision is revisited; fixes that keep CI green are fine.
+
+Read together with the root `CLAUDE.md` (product, workflow, conventions).
+
+## Commands
+
+```bash
+dart analyze --fatal-infos   # types + lints + riverpod_lint, in one command
+flutter test
+dart run build_runner build --delete-conflicting-outputs   # @riverpod codegen
+flutter gen-l10n                                            # regenerate strings from .arb
+```
+
+## Architecture rules
+
+We follow the Riverpod app architecture from Code with Andrea
+(codewithandrea.com/articles/flutter-app-architecture-riverpod-introduction/),
+feature-first. Reference implementation: the `ecommerce_app` from the Flutter
+Foundations course. Differences from that course are listed at the end.
+
+### Folder structure
+
+```
+lib/
+├── main.dart                      # bootstrap only: ProviderScope, error handlers, runApp
+└── src/
+    ├── app.dart                   # MaterialApp.router wired to goRouterProvider
+    ├── common_widgets/            # truly shared widgets (AsyncValueWidget, PrimaryButton, alert dialogs…)
+    ├── constants/                 # app_sizes.dart, breakpoints, api constants
+    ├── exceptions/                # AppException sealed class + error_logger
+    ├── features/
+    │   ├── authentication/        # sign in / sign out / current user
+    │   ├── plan/                  # enter text → parsed plan → confirm  (the core feature)
+    │   ├── tasks/                 # today's tasks, mark done
+    │   └── reminders/             # scheduling local notifications from tasks
+    ├── localization/              # app_en.arb (+ app_hr.arb), string_hardcoded.dart
+    ├── routing/                   # app_route.dart, app_router.dart, go_router_refresh_stream.dart, not_found_screen.dart
+    └── utils/                     # async_value_ui.dart, date formatters, in_memory_store.dart
+```
+
+Each feature has up to four layers; create a folder only when it has content:
+
+```
+features/<feature>/
+├── presentation/   widgets + controllers (screen_controller.dart next to screen.dart)
+├── application/    services — ONLY when logic spans several repositories or is shared
+├── domain/         immutable models: fromJson/toJson, ==, hashCode, copyWith
+└── data/           repositories, data sources, DTOs
+```
+
+A feature is a functional requirement ("plan tomorrow", "get reminded"), not a
+screen. Do not create `features/home_screen/`.
+
+### Layer rules
+
+- Dependencies point one way: presentation → application → domain ← data.
+  Data never imports presentation; domain imports nothing but other domain models.
+- **Domain**: plain immutable Dart classes (`Task`, `Plan`, `AppUser`). Freezed is
+  allowed but not required; hand-written `copyWith`/`==` is fine for small models.
+- **Data**: one repository per data source. `PlanRepository` (Dio → Saidly API),
+  `AuthRepository` (wraps `firebase_auth`), `LocalNotificationsRepository`
+  (wraps `flutter_local_notifications`). Repositories are concrete classes exposed
+  as `Provider`s (`planRepositoryProvider`). They map DTOs/JSON into domain models
+  and translate low-level errors into `AppException` subclasses. Nothing outside
+  `data/` imports Dio, Firebase or notification packages.
+- **Application**: a `XyzService` only when a controller would otherwise call two
+  repositories (e.g. `PlanService`: save confirmed plan via API, then schedule
+  reminders locally). If a service only forwards calls, delete it.
+- **Presentation**: widgets are `ConsumerWidget`/`ConsumerStatefulWidget` and stay
+  dumb — they `ref.watch` state, call controller methods, and show errors.
+  Controllers are `AsyncNotifier` subclasses generated with `@riverpod`; they
+  expose `AsyncValue<T>` and mutate with
+  `state = const AsyncLoading(); state = await AsyncValue.guard(() => ...)`.
+  Widgets react to errors with
+  `ref.listen(controllerProvider, (_, s) => s.showAlertDialogOnError(context))`.
+  Read-only async data is rendered with `AsyncValueWidget<T>`; every list has an
+  empty state.
+- Errors are `AppException(code, message)` subclasses in `src/exceptions/`; user
+  messages come from there, not from `catch (e) => e.toString()` in widgets.
+
+### Navigation — go_router
+
+- One `GoRouter` in `src/routing/app_router.dart`, exposed as `goRouterProvider`
+  (a Riverpod `Provider<GoRouter>`), consumed by `MaterialApp.router` in `app.dart`.
+- Routes are named via `enum AppRoute { signIn, home, plan, planReview, tasks,
+  settings }`; navigate with `context.goNamed(AppRoute.plan.name)` /
+  `pushNamed`, never with string literals.
+- Auth guard lives in `redirect`: unauthenticated → `/signIn`; authenticated on
+  `/signIn` → `/`. `refreshListenable: GoRouterRefreshStream(authRepository.authStateChanges())`
+  so the guard re-runs on sign-in/out.
+- Flows that interrupt (plan review, settings) are `pageBuilder` routes with
+  `MaterialPage(fullscreenDialog: true)`. Deep-link-able things (a task by id)
+  are nested routes with path parameters: `/tasks/:id`.
+- `errorBuilder` → `NotFoundScreen`. No `Navigator.push` anywhere in features.
+
+### Other mobile rules
+
+- Riverpod only, with `riverpod_generator` + `riverpod_lint`. Since
+  riverpod_lint 3.1.0 there is no `custom_lint`: it runs as an analysis server
+  plugin, declared under `plugins:` in `analysis_options.yaml`.
+  Do not add another state-management or DI package.
+- **Check the mobile package with `dart analyze --fatal-infos`, never
+  `flutter analyze`.** Only `dart analyze` loads analyzer plugins, so
+  `flutter analyze` silently skips every riverpod rule; and `dart analyze`
+  exits 0 on info-level issues, which is most of `flutter_lints`, so the flag
+  is what makes them fail. Both halves were measured — see the comment at the
+  top of `apps/flutter/analysis_options.yaml`.
+- Generated `*.g.dart` files are committed, so a fresh clone builds and CI
+  needs no codegen step. They are excluded from analysis.
+- Networking: one Dio instance from `dioProvider` with an interceptor that
+  attaches the Firebase ID token (`getIdToken()`) and force-refreshes it once on
+  401. Only repositories use it.
+- Reminders are scheduled locally with `flutter_local_notifications`; the server
+  never sends reminder pushes in v0.1.
+- Strings: English first via `flutter_localizations` + `app_en.arb`, with
+  `app_hr.arb` alongside it — Croatian is supported, not primary. While a string
+  has no key, mark it with `.hardcoded` so it is greppable later.
+- Tests: unit tests for controllers, services and repositories with `mocktail`
+  fakes; widget tests for each screen's loading/error/empty state; goldens only
+  for the plan review screen. Test files mirror `lib/` under `test/`.

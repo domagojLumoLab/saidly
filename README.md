@@ -8,8 +8,9 @@ invoice before noon, harmonica practice from 19:00 to 20:30" becomes three items
 each with a time, and each one nudges you when it matters — as a notification, or
 read aloud if sound is on.
 
-> Status: **v0.1 in progress** — text input only, Flutter client + own backend.
-> Voice, on-device AI and Siri come in later phases (see roadmap).
+> Status: **v0.1 in progress** — text input only, native iOS client + own backend.
+> Voice, on-device AI and Siri come in later phases (see roadmap). The Flutter
+> client is paused, not removed — see `docs/decisions/003-native-ios-first.md`.
 
 ## Why
 
@@ -25,10 +26,11 @@ layer. It exists to be used, and to show how such a product is built end-to-end.
 
 ```mermaid
 flowchart LR
-  A[Flutter app<br/>iOS · Android] -- JWT --> B[Saidly API<br/>Hono · TypeScript]
+  A[iOS app<br/>Swift · SwiftUI] -- JWT --> B[Saidly API<br/>Hono · TypeScript]
   B --> C[(Postgres)]
   B --> D[LLM providers<br/>Anthropic · Gemini]
   A --> E[Local notifications<br/>+ TTS on device]
+  F[Flutter app<br/>paused] -. JWT .-> B
 ```
 
 1. You sign in (Firebase Auth) and type your plan for tomorrow.
@@ -46,7 +48,8 @@ saidly/
 ├── apps/
 │   ├── api/        Hono + TypeScript + Drizzle + Postgres   (Node 22)
 │   │   └── eval/   English and Croatian parser cases, run by `pnpm eval`
-│   └── mobile/     Flutter app                             (Flutter 3.x)
+│   ├── ios/        Native iOS app — Swift 6, SwiftUI       (Xcode 26, iOS 26+)
+│   └── flutter/    Flutter app — paused                    (Flutter 3.x)
 ├── docs/           Architecture notes, decisions, provider comparison
 ├── CLAUDE.md       Working rules for AI coding agents
 └── README.md
@@ -67,7 +70,7 @@ pnpm db:migrate
 pnpm dev                      # http://localhost:3000/health and /ready
 
 # Mobile
-cd apps/mobile
+cd apps/flutter
 cp .env.example .env          # API_BASE_URL (localhost:3000 or the deployed URL
                               # below); Firebase config via flutterfire configure
 flutter pub get
@@ -109,15 +112,16 @@ Postgres service, so traffic stays on the private network),
 ## Roadmap
 
 - **v0.1 (Oct 2026)** — text → plan → reminders. API deployed with CI/CD, auth,
-  cost tracking, multi-provider parsing, eval set. Flutter client with sign-in,
-  plan entry, confirmation, local notifications.
+  cost tracking, multi-provider parsing, eval set. Native iOS client with
+  sign-in, plan entry, confirmation, local notifications.
 - **v0.2** — voice input, streaming responses, offline cache and sync, spoken
   reminders and a morning "here's your day" summary.
 - **v0.3** — on-device parsing on iPhone (Apple Foundation Models + SpeechAnalyzer)
-  with cloud fallback; the bridge published as a Flutter package.
-- **v0.4** — App Intents ("Hey Siri, Saidly…"), widget, Live Activity, Android
-  Gemini Nano where available.
-- **v1.0** — App Store and Google Play release with subscriptions.
+  with cloud fallback.
+- **v0.4** — App Intents ("Hey Siri, Saidly…"), AlarmKit wake-up alarms, widget,
+  Live Activity.
+- **v1.0** — App Store release with subscriptions. Android (Flutter client
+  resumed, Gemini Nano where available) is decided after v0.3.
 
 **Voice in v0.2 and Siri in v0.4 are separate pieces of work, not one.** Voice
 input inside the app means recording, permissions and transcription. The Siri
@@ -125,14 +129,11 @@ path involves none of that: Siri transcribes and hands an App Intent a finished
 string, so the app never touches the microphone. Building one brings the other
 no closer, and the Siri path may well be the smaller job.
 
-App Intents are Swift and cannot be written in Dart, and when Siri runs one
-without opening the app there is no Flutter engine to run Dart in. The cheap
-version has the intent open the app with the transcribed text and lets Dart do
-the rest — which also keeps the confirmation screen, where the user sees what
-the parser understood. Having the intent call the API itself would mean a
-second implementation of the request and the token handling in Swift, and no
-confirmation screen; worth it only once the eval numbers say the parser can be
-trusted unseen.
+With a native client the intent can call the same Swift code the app uses.
+The first version still opens the app with the transcribed text, which keeps
+the confirmation screen where the user sees what the parser understood.
+Parsing and scheduling without opening the app is worth it only once the eval
+numbers say the parser can be trusted unseen.
 
 ## Decisions
 
