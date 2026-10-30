@@ -180,7 +180,8 @@ Saidly (app) ──► Features ──► Domain ◄── Networking, Auth, Rem
 - Every view model and repository has Swift Testing tests in its module's test
   target. Test behaviour through the public API: given a fake repository that
   returns X, the view model ends in state Y.
-- Networking is tested with a `URLProtocol` stub — no real network in tests.
+- Networking is tested through the `HTTPTransport` protocol with a fake
+  transport (`FakeHTTPTransport`) — no real network in tests.
 - Async tests use `async` test functions; no sleeps, no expectations with
   timeouts.
 - Previews are part of the work: every screen has previews for loading,
