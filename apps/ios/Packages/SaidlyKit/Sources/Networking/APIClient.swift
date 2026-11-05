@@ -32,10 +32,36 @@ public final class APIClient: Sendable {
             } catch {
                 throw .server
             }
-        case 500..<600:
-            throw .server
         default:
-            throw .unknown
+            // The error body is a bonus: when the server names the problem we use it,
+            // otherwise we fall back to the status code.
+            if let bodyError = Self.appError(fromBody: data) {
+                throw bodyError
+            }
+            throw (500..<600).contains(response.statusCode) ? .server : .unknown
+        }
+    }
+
+    /// The error envelope the API sends with every non-2xx response.
+    /// Only `code` matters here; `Decodable` ignores the fields we leave out.
+    private struct ErrorBody: Decodable {
+        struct Detail: Decodable {
+            let code: String
+        }
+        let error: Detail
+    }
+
+    private static func appError(fromBody data: Data) -> AppError? {
+        guard let body = try? JSONDecoder().decode(ErrorBody.self, from: data) else {
+            return nil
+        }
+        switch body.error.code {
+        case "rate_limited":
+            return .rateLimited
+        case "parser_failed":
+            return .parserFailed
+        default:
+            return nil
         }
     }
 

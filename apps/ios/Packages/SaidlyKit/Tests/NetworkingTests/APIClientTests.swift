@@ -104,4 +104,57 @@ struct TestResponse: Decodable, Equatable {
             let _: TestResponse = try await client.get("/me")
         }
     }
+
+    @Test("Maps the rate_limited error code to rateLimited")
+    func throwsRateLimitedFromErrorBody() async {
+        let (client, _) = makeClient(responses: [
+            FakeHTTPTransport.response(
+                status: 429,
+                body: #"{"error":{"code":"rate_limited","message":"Too many plans parsed today"}}"#
+            )
+        ])
+
+        await #expect(throws: AppError.rateLimited) {
+            let _: TestResponse = try await client.get("/me")
+        }
+    }
+
+    @Test("Maps the parser_failed error code to parserFailed")
+    func throwsParserFailedFromErrorBody() async {
+        let (client, _) = makeClient(responses: [
+            FakeHTTPTransport.response(
+                status: 502,
+                body: #"{"error":{"code":"parser_failed","message":"Could not parse the plan"}}"#
+            )
+        ])
+
+        await #expect(throws: AppError.parserFailed) {
+            let _: TestResponse = try await client.get("/me")
+        }
+    }
+
+    @Test("Falls back to unknown for an unrecognised error code")
+    func throwsUnknownForUnrecognisedErrorCode() async {
+        let (client, _) = makeClient(responses: [
+            FakeHTTPTransport.response(
+                status: 400,
+                body: #"{"error":{"code":"invalid_request","message":"Bad request"}}"#
+            )
+        ])
+
+        await #expect(throws: AppError.unknown) {
+            let _: TestResponse = try await client.get("/me")
+        }
+    }
+
+    @Test("Falls back to the status code when the error body is empty")
+    func throwsServerWhenErrorBodyIsEmpty() async {
+        let (client, _) = makeClient(responses: [
+            FakeHTTPTransport.response(status: 503)
+        ])
+
+        await #expect(throws: AppError.server) {
+            let _: TestResponse = try await client.get("/me")
+        }
+    }
 }

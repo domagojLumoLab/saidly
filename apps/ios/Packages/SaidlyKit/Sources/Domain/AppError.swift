@@ -5,6 +5,8 @@ public enum AppError: Error, Sendable, Equatable {
     case unknown
     case sessionExpired
     case server
+    case rateLimited
+    case parserFailed
 
     public var message: String {
         switch self {
@@ -20,6 +22,10 @@ public enum AppError: Error, Sendable, Equatable {
             "Your session has expired. Please sign in again."
         case .server:
             "The server is having trouble. Please try again later."
+        case .rateLimited:
+            "You've planned a lot today. Try again tomorrow."
+        case .parserFailed:
+            "Couldn't understand that. Try rephrasing."
         }
     }
 }
